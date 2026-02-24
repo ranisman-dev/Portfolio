@@ -12,10 +12,10 @@ pressure and meaning — before reading a single case study.
 
 ## Current Position
 
-Phase: 1 of 10 (Foundation)
+Phase: 1 of TBD (Foundation)
 Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-02-23 — ROADMAP.md and STATE.md created; v1 roadmap established (10 phases, 37 requirements mapped)
+Status: Updating roadmap (platform change: Squarespace → GitHub Pages)
+Last activity: 2026-02-24 — Platform corrected to GitHub Pages; PROJECT.md, REQUIREMENTS.md, ROADMAP.md being updated
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -45,10 +45,11 @@ Progress: [░░░░░░░░░░] 0%
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- Phase 1: Template selection (Paloma primary, Hester alternative) — requires hands-on CSS test with origami fold block before committing
-- Phase 1: GSAP loaded via CDN in header injection; ScrollTrigger AJAX re-init pattern must be confirmed against current Squarespace 7.1 event API before writing production code
-- Phase 3: Work Portfolio slug must be `/work` and locked before any project sub-page is published — changing it later breaks all project page URLs
-- Phase 7: Contact lives as a section within About for v1 (not a standalone nav item) — reduces friction, revisit after launch
+- Platform changed to GitHub Pages (free) — no Squarespace hosting plan exists; user has domain registration only
+- Phase 1: GSAP loaded via CDN in HTML `<head>`; no Squarespace AJAX re-init needed (standard HTTP navigation)
+- Nav confirmed: Home | Work | Writing | About | Contact (Contact = anchor /about#contact; Earlier Work hidden until Phase 6)
+- Design aesthetic: warm neutrals + indie internet personality (personal web / tumblr culture, not agency-polished)
+- Phase 1 placeholder pages = minimal HTML skeleton (not empty); correct structure with placeholder content
 
 ### Pending Todos
 
@@ -56,9 +57,8 @@ None yet.
 
 ### Blockers/Concerns
 
-- Phase 1: Squarespace AJAX event names (`Squarespace.afterBodyLoad` or equivalent) should be confirmed against current 7.1 platform — knowledge cutoff is August 2025, minor API changes possible
-- Phase 5: PDF embed method in Squarespace 7.1 (file block vs. embed code block vs. external link) needs confirmation before Writing section is built
 - Phase 8: GSAP 3D transforms on actual iOS Safari must be tested before finalizing mobile detection breakpoint — desktop browser resize is not sufficient
+- Phase 5: PDF inline excerpt display method needs confirmation for static HTML (iframe embed vs. PDF.js vs. hosted link with excerpt text)
 
 ## Session Continuity
 
