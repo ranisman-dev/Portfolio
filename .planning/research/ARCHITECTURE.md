@@ -1,321 +1,628 @@
-# Architecture Research: Game Design Portfolio
+# Architecture Research: Static HTML Portfolio Site
 
-> Research basis: Industry conventions for game/narrative design portfolios, Squarespace platform capabilities,
-> UX and information architecture principles. Applied to the Origami Games portfolio context.
-> Date: 2026-02-23
-
----
-
-## Site Structure
-
-A game design portfolio serves three distinct visitor types simultaneously: hiring managers who scan quickly for evidence of craft and shipping experience; collaborators who want to understand how you think; and freelance clients who need to trust you with their vision. The page inventory below is organized around that reality — every page has a primary job.
-
-### Page Inventory
-
-| Page | Type | Primary Job | Primary Audience |
-|------|------|-------------|-----------------|
-| Home | Landing | Establish identity + philosophy + draw visitors into work | All |
-| Work (index) | Gallery/Index | Surface the range of shipped games and case studies as a curated set | Studios, clients |
-| Project page (per project) | Detail | Prove design thinking through one project in depth | Studios, collaborators |
-| Writing | Index or Folder | Demonstrate craft at the sentence and systems level | Studios, collaborators |
-| Earlier Work / Retrospectives | Index or Folder | Show growth, self-awareness, and the ability to critique your own work | Studios, collaborators |
-| About | Single page | Make the human legible — story, throughline, values | All |
-| Contact | Single page or section | Remove friction from reaching out | All |
-
-### Purpose Detail Per Section
-
-**Home / Landing**
-The home page is doing the hardest job on the site: converting a stranger into someone who wants to read more. For a narrative/experience designer, the home page must communicate the design philosophy — not just "I make games" but "I make games that do this specific thing in the world" — before the visitor clicks anything. This means the above-the-fold moment carries a thesis, not just a name and job title. Featured project cards below serve as proof, not a full catalogue.
-
-Typical structure: hero (name + philosophy statement) → 2–3 featured project cards → brief identity bridge (1–2 sentences toward About) → footer.
-
-**Work (Index)**
-The work index is a curated gallery, not an exhaustive archive. Industry convention for game design portfolios is to show 3–6 projects rather than everything. Quantity signals volume; quality and selection signal judgment. Each card shows: game title, role, platform/format, and a single evocative image. Optionally a one-line hook.
-
-Sub-types within Work may include: shipped games (highest credibility), design briefs (shows process when shipped work is limited), and prototypes (used sparingly, only when they illustrate a specific mechanic or intent that shipped work doesn't cover).
-
-**Project Page (Case Study)**
-See "Project Page Anatomy" section below for full detail.
-
-**Writing**
-Standalone writing samples — narrative design documents, design essays, reflective pieces. These are not attached to a specific project; they exist as independent proof of voice, rigour, and thinking. A writing index may link to PDFs, embedded documents, or project-style single pages with the text inline.
-
-For a narrative designer specifically, this section carries more weight than it would for a systems or level designer. Reviewers in narrative roles expect to be able to read your prose.
-
-**Earlier Work / Retrospectives**
-The "What I'd Change" framing is a strong differentiator. Rather than hiding student work (which reviewers can often identify anyway) or presenting it uncritically, the retrospective frame signals maturity, self-awareness, and the ability to learn — qualities explicitly valued in collaborative studio environments.
-
-Structure per retrospective: brief project description → what the project was trying to do → what actually happened → what you would do differently now → what you learned that carried forward. This is not self-deprecation; it is demonstrated critical thinking.
-
-**About**
-The About page for a game designer is not a resume page — it is where the philosophy becomes personal. Effective About pages for designers in this space answer: Who shaped how you think? What problems keep pulling you back? What do you stand for when you have to make a hard design call? A throughline (here: well-being, pressure, meaning) should appear explicitly and be traceable back to the work shown.
-
-Resume/CV should be available here — as a downloadable PDF, not inline text. A list of credits or shipped titles may appear as a compact reference block.
-
-**Contact**
-Can be a standalone page or a section at the bottom of About. For a portfolio site, standalone pages for contact add unnecessary navigation friction unless the contact form is elaborate. A section at the bottom of About with a simple form or email link is often more effective — it catches visitors who've just finished reading about the person and are ready to reach out.
+**Domain:** 10-page static HTML/CSS/JS portfolio, GitHub Pages hosting
+**Researched:** 2026-02-24
+**Confidence:** HIGH (static HTML conventions are stable and well-established; GSAP ScrollTrigger patterns are from official v3 docs)
 
 ---
 
-## Navigation Flow
-
-### Primary Navigation (Top-Level)
-A game design portfolio's primary nav should be minimal. Recommended max: 5 items.
+## System Overview
 
 ```
-Home  |  Work  |  Writing  |  Earlier Work  |  About
+┌─────────────────────────────────────────────────────────────────┐
+│                     GitHub Pages (CDN/Hosting)                  │
+│  Serves static files from /docs or root of the repository       │
+├─────────────────────────────────────────────────────────────────┤
+│                        HTML Layer                               │
+│                                                                 │
+│  index.html   work/        writing/    earlier-work/  about/    │
+│               index.html   index.html  index.html     index.html│
+│               [slug]/                                           │
+│               index.html                                        │
+├─────────────────────────────────────────────────────────────────┤
+│                        CSS Layer                                │
+│                                                                 │
+│  css/tokens.css    css/base.css    css/components.css           │
+│  css/layout.css    css/animations.css                           │
+├─────────────────────────────────────────────────────────────────┤
+│                     JavaScript Layer                            │
+│                                                                 │
+│  js/nav.js (shared include)    js/animations.js (per-page)      │
+│  CDN: GSAP 3 + ScrollTrigger                                    │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-Contact can live within About rather than as a top-level nav item, reducing visual noise. If Contact is separate, consider folding Writing and Earlier Work under a single "Words" or "Thinking" umbrella to keep nav at 4–5 items.
+### Component Responsibilities
 
-### Visitor Paths by Audience Type
-
-**Hiring manager (time-scarce, evaluating fit)**
-1. Home — reads the philosophy statement, decides if it's relevant
-2. Work index — scans project cards for recognizable titles or roles
-3. One or two project pages — looks for evidence of scope, contribution, and process
-4. About — checks credits, experience level, location/availability
-5. Contact or resume PDF
-
-**Collaborator / indie dev (values-led, looking for thinking partner)**
-1. Home — reads the philosophy statement carefully
-2. About — wants to understand the person first
-3. Writing — looks for voice and the quality of thinking
-4. Work — reads 1–2 case studies in depth
-5. Contact
-
-**Freelance client (trust-building, looking for reliability)**
-1. Home — first impressions, professionalism
-2. Work — is there shipped work? Is the quality evident?
-3. About — who is this person, can I trust them with my project?
-4. Contact
-
-### In-Page Flow Considerations
-- Project pages should have clear previous/next navigation if multiple projects are in the same collection — this keeps evaluators moving through the work without returning to the index.
-- The home page's featured project cards should link directly to project pages, not to the Work index. Reduce clicks to depth.
-- About should link to both the Work index and Contact — it's a natural transition point for engaged visitors.
-- Footer navigation should echo the primary nav and add the resume PDF link.
+| Component | Responsibility | Typical Implementation |
+|-----------|----------------|------------------------|
+| HTML pages | Content and structure; each is a standalone document | Static `.html` files, no templating engine |
+| Shared nav/footer | Consistent global navigation and contact fallback | JS-injected include OR manually copied HTML blocks |
+| CSS tokens file | Design system: colors, type scale, spacing, animation values | CSS custom properties in `:root` block |
+| Base CSS | Resets, body, typography, link defaults | Single file loaded on every page |
+| Component CSS | Cards, nav, footer, project sections, code blocks | Grouped by component, all loaded globally |
+| Animation CSS | 3D transform setup, keyframes, reduced-motion overrides | Separate file to keep non-animating pages clean |
+| JS init (per-page) | GSAP timeline setup, ScrollTrigger registration | Inline `<script>` at bottom of each page, or loaded as a module |
+| nav.js / include.js | Inject shared nav/footer HTML, set active nav state | One small vanilla JS file, runs on DOMContentLoaded |
 
 ---
 
-## Project Page Anatomy
+## Recommended Project Structure
 
-A single case study page for a game or narrative design project follows a recognizable structure in the industry. The goal is to answer four questions in order: What was this? What did you do? How did you think about it? What happened?
+```
+/ (repository root)
+├── index.html                  # Home / Landing page
+│
+├── work/
+│   ├── index.html              # Work index — MUST be created before any project pages
+│   ├── [project-slug]/
+│   │   └── index.html          # Individual project case study
+│   └── [project-slug-2]/
+│       └── index.html
+│
+├── writing/
+│   └── index.html              # Writing section index
+│
+├── earlier-work/
+│   └── index.html              # Retrospectives index (hidden from nav until Phase 6)
+│
+├── about/
+│   └── index.html              # About + Contact section (#contact anchor)
+│
+├── assets/
+│   ├── images/
+│   │   ├── home/               # Hero and featured card images
+│   │   ├── work/
+│   │   │   └── [project-slug]/ # Per-project images
+│   │   └── about/
+│   ├── fonts/                  # Self-hosted fonts (if any)
+│   ├── pdfs/
+│   │   └── resume.pdf          # Resume download
+│   └── writing/                # Writing sample PDFs
+│
+├── css/
+│   ├── tokens.css              # CSS custom properties: colors, type scale, spacing, animation
+│   ├── base.css                # CSS reset, body, typography defaults
+│   ├── layout.css              # Grid/flex containers, page-level layout
+│   ├── components.css          # Nav, footer, cards, project sections, buttons
+│   └── animations.css          # 3D transform rules, keyframes, reduced-motion media query
+│
+├── js/
+│   ├── nav.js                  # Inject shared nav/footer; set active nav state
+│   └── animations.js           # GSAP ScrollTrigger init (split by page with guards)
+│
+├── _includes/                  # HTML fragments for nav/footer (loaded by nav.js)
+│   ├── nav.html
+│   └── footer.html
+│
+├── CNAME                       # Custom domain for GitHub Pages (already exists)
+└── .gitignore
+```
 
-### Standard Structure
+### Structure Rationale
 
-**1. Title block**
-- Game/project title
-- Your role (be specific: "Narrative Designer" not just "Designer")
-- Platform, format, release date or status (Shipped / In Development / Prototype)
-- Studio or context (solo project, team, jam, client)
-- A single hero image or embedded trailer/video
-
-**2. Project summary (2–4 sentences)**
-What is the game, and what was your contribution to it? Written for someone who may never play it. Avoid internal jargon. If it's shipped and publicly available, link to it here.
-
-**3. Design challenge / problem statement**
-What was the core design problem you were solving? This is where "narrative and experience designer" becomes concrete. What did the player need to feel or understand? What constraint or tension were you working within? This section separates process documentation from a feature list.
-
-**4. Process / approach**
-How did you approach the problem? What tools, methods, or frameworks did you use? This section may include:
-- Sketches, diagrams, or flowcharts (narrative structure maps, system diagrams)
-- Wireframes or paper prototypes
-- Documentation excerpts (design briefs, narrative design docs)
-- Iteration notes — what you tried first and why you changed it
-
-Keep this honest. Reviewers in game studios have seen enough portfolio case studies to recognize sanitised "it all went perfectly" narratives. Include what didn't work.
-
-**5. Outcome**
-What shipped? What changed from your original approach? If there's a playable build, link to it. If there are player responses, reviews, or feedback that speak to the design goal, include them. Quantitative metrics are less important in narrative/experience design than in UX — qualitative evidence (player comments, review excerpts, playtester notes) is appropriate and credible.
-
-**6. Reflection (optional but valuable)**
-One paragraph on what you learned or what you'd approach differently. This is especially powerful for studios who want to understand how you grow. For retrospectives, this section expands into the full "What I'd Change" treatment.
-
-**7. Attached writing / documents (project-specific)**
-Design briefs, narrative docs, or writing samples that are attached to this project rather than the general Writing section. These can be:
-- Embedded PDFs (Squarespace supports PDF embedding via file blocks or embeds)
-- Expandable sections / accordions (via custom JS)
-- Links to external documents (Google Docs, Notion, itch.io)
-
-**8. Navigation footer**
-- Previous project / Next project
-- Back to Work index
-- Link to About or Contact if appropriate
-
-### What to Omit
-- Long lists of features the game has (this is a portfolio, not a press kit)
-- Tool/software logos without context ("Made in Unity" on its own tells a reviewer nothing useful)
-- Every iteration — show the arc, not every step
-- Screenshots without captions — every image should be doing rhetorical work
-
----
-
-## Information Hierarchy
-
-What visitors should encounter in what order — and why.
-
-### First: Identity + Philosophy (Home, above the fold)
-
-The single most important thing a narrative/experience designer's portfolio must communicate is the "why" behind the work. Before a visitor reads a single case study, they should know: this designer's work is about helping players reflect on well-being, pressure, and meaning. That is a positioning statement that differentiates the portfolio from the vast majority of game design portfolios, which lead with tools and titles.
-
-Practically: the hero section of the home page carries the designer's name, a one-line philosophy statement (not a job title), and possibly a single atmospheric visual that signals the aesthetic register of the work.
-
-Example hierarchy at this level:
-1. Name
-2. Philosophy statement ("I design game systems that help players reflect on pressure, meaning, and well-being.")
-3. Atmospheric image or motion element (origami fold)
-4. Featured project cards (proof)
-
-### Second: Proof of Craft (Work / Project pages)
-
-Once identity is established, visitors need evidence. This is where the Work index and project pages operate. The hierarchy within this tier:
-1. Shipped work (highest credibility — something existed in the world and players interacted with it)
-2. Case studies with visible process (shows how you think)
-3. Design briefs (shows what you would have done, useful when shipped work is limited)
-4. Prototypes (shows specific mechanic or intent — lower credibility tier, use selectively)
-
-### Third: Voice and Thinking (Writing + Retrospectives)
-
-For a narrative designer, the writing section is not supplementary — it is a second proof layer. Reviewers looking for narrative designers specifically will read the writing. The hierarchy within this tier:
-1. Writing that connects to the design philosophy (most powerful)
-2. Design essays or reflective writing (demonstrates critical thinking)
-3. Retrospectives / "What I'd Change" (demonstrates growth and self-awareness)
-
-### Fourth: The Human (About + Contact)
-
-Visitors who reach the About page are already engaged. They've seen the work. Now they want to understand the person. The About page can be warmer and more personal than the portfolio pages without sacrificing professionalism. By the time a visitor reaches Contact, friction should be near zero.
+- **Directory-per-page (index.html pattern):** `work/index.html` results in the URL `/work/` — no `.html` extension visible. This is standard for GitHub Pages and produces clean URLs that look professional and do not break when extensions are hidden.
+- **work/[slug]/index.html:** Project pages live at `/work/project-name/` — clean, hierarchical, and survives slug changes without breaking the parent `/work/` index.
+- **assets/ as a flat sibling of pages:** Keeps media files separate from HTML. Subfolder per section prevents asset collisions as the project grows.
+- **css/ split into 5 files:** Each file has a single job (see CSS Architecture below). All five are linked in `<head>` on every page — no page-specific CSS files. This is simpler to maintain when the owner is not a developer.
+- **js/ split into two files:** `nav.js` handles the shared include (runs everywhere), `animations.js` handles GSAP (runs on pages that need it). Separating these means disabling animation JS does not break navigation.
+- **_includes/ for HTML fragments:** These are not processed by any templating engine — they are plain HTML fragments fetched by `nav.js` at runtime via `fetch()`. This is the cleanest no-build-tool shared-nav pattern.
 
 ---
 
-## Build Order
+## Architectural Patterns
 
-Recommended sequence for building a Squarespace portfolio from scratch. The logic: establish identity and structure first, then add content in order of credibility and visitor priority.
+### Pattern 1: JS Fetch Include for Shared Nav and Footer
 
-### Phase 1: Foundation (Before any content)
-1. **Choose and configure a Squarespace template** — select a template that supports full-bleed hero sections, a clean navigation bar, and portfolio/gallery-style index pages. Squarespace 7.1 templates are all on the same engine, so template choice is primarily aesthetic. Bedford, Avenue, and Brine (7.0) or their 7.1 equivalents suit portfolio sites.
-2. **Set up site-wide styles** — typography, color palette, spacing — before building pages. Changing these later cascades through every page. Define: primary font (headers), secondary font (body), background color, text color, accent color.
-3. **Configure navigation structure** — add top-level nav items as placeholder pages so the nav bar reflects the final structure even before content exists.
-4. **Set up header/footer code injection points** — add GSAP CDN script tag in the header injection area. Establish a custom CSS injection file structure (even if empty). This prevents having to revisit the injection setup mid-build.
+**What:** A small vanilla JS file fetches `_includes/nav.html` and `_includes/footer.html` at runtime and injects them into placeholder `<div>` elements on each page. This gives one source of truth for the nav and footer without a static site generator.
 
-### Phase 2: Home Page
-5. **Build the hero section** — name, philosophy statement, atmospheric visual. This is the highest-value real estate on the site. Get it right before building anything else, because it sets the visual and tonal register.
-6. **Add placeholder featured project cards** — even with placeholder images, establish the layout and spacing of the featured work section. Real images replace placeholders in Phase 4.
-7. **Add footer** — contact link, social links, resume PDF link, nav echo.
+**When to use:** Any time nav/footer needs to appear on every page and be maintainable from a single file, without npm, Jekyll, or Eleventy.
 
-### Phase 3: Work Index + First Project Page
-8. **Create the Work index page** — configure as a Portfolio or Gallery page in Squarespace (see Squarespace Structure section). Add placeholder cards.
-9. **Build one complete project page** — the first case study page establishes the template that all subsequent project pages will follow. Choose the strongest shipped project. Build this page fully before creating additional project pages.
-10. **Validate the project page template** — share the link with one or two trusted reviewers and get feedback before replicating the structure across all projects.
+**Trade-offs:**
+- Pro: Single source of truth. Edit `_includes/nav.html` once, all pages update.
+- Pro: No build step, no dependencies, works on GitHub Pages as-is.
+- Con: A brief flash-of-unstyled-nav (FOUN) is possible on slow connections — mitigated by placing the placeholder `<div>` with min-height in CSS.
+- Con: If JavaScript is disabled, nav and footer do not appear. Mitigated per REQ-Anim05 (progressive enhancement): put a `<noscript>` fallback in each page OR accept that nav/footer are JS-dependent (appropriate for a portfolio where JS is assumed).
 
-### Phase 4: About Page
-11. **Write and publish the About page** — the About page benefits from knowing the Work is in place, because the About narrative can reference specific projects. Build it after at least one project page is live.
-12. **Add resume PDF** — ensure the PDF is formatted to match the site's visual register.
+**Example:**
 
-### Phase 5: Writing and Earlier Work
-13. **Writing index** — create the Writing section once the Work section is populated. The contrast between the two makes both stronger.
-14. **Retrospectives / Earlier Work** — build last among the content sections. These require the most careful framing and benefit from having the rest of the site's identity established first.
+```html
+<!-- In every page's <body>, before main content -->
+<div id="site-nav" aria-label="Site navigation"></div>
 
-### Phase 6: Contact + Polish
-15. **Contact page or section** — either a standalone page or a section appended to About.
-16. **Cross-linking audit** — ensure every page that should link to another does. Home → Projects. Projects → About. About → Contact. Footer → all.
-17. **Mobile review** — Squarespace templates are responsive, but custom CSS and GSAP animations require explicit mobile testing. Review every page on mobile viewport.
-18. **Custom domain and SEO basics** — connect domain, set page titles and descriptions, add alt text to images.
+<!-- At the bottom of every page's <body> -->
+<div id="site-footer"></div>
 
-### v1 Minimum Viable Site (for "just enough to share")
-For the stated v1 goal — structure + 1–2 featured projects, linkable and professional — the minimum is:
-- Home page (with philosophy + 1–2 featured project cards)
-- 1–2 complete project pages
-- About page (can be brief)
-- Contact (section within About is sufficient)
-- Work index page (even with only 1–2 cards, so the URL structure is correct from the start)
+<!-- Load nav.js just before </body> -->
+<script src="/js/nav.js"></script>
+```
 
-Writing and Earlier Work sections can be added to nav as "Coming Soon" placeholder pages or simply omitted from nav until content is ready.
+```javascript
+// js/nav.js
+(function () {
+  // Path is absolute so it works regardless of nesting depth
+  const NAV_PATH = '/includes/nav.html';
+  const FOOTER_PATH = '/includes/footer.html';
 
----
+  function injectFragment(targetId, path) {
+    const target = document.getElementById(targetId);
+    if (!target) return;
+    fetch(path)
+      .then(function (res) { return res.text(); })
+      .then(function (html) {
+        target.innerHTML = html;
+        // After injecting nav, mark the active page
+        setActiveNavItem();
+      })
+      .catch(function () {
+        // Silently fail — page still works without nav
+      });
+  }
 
-## Squarespace Structure Considerations
+  function setActiveNavItem() {
+    // Use window.location.pathname to highlight current page in nav
+    var path = window.location.pathname;
+    var links = document.querySelectorAll('#site-nav a');
+    links.forEach(function (link) {
+      // Match the nav link href to the current path
+      if (link.getAttribute('href') === path ||
+          (path.startsWith(link.getAttribute('href')) && link.getAttribute('href') !== '/')) {
+        link.classList.add('nav-active');
+        link.setAttribute('aria-current', 'page');
+      }
+    });
+  }
 
-### Page Types Available in Squarespace 7.1
+  document.addEventListener('DOMContentLoaded', function () {
+    injectFragment('site-nav', NAV_PATH);
+    injectFragment('site-footer', FOOTER_PATH);
+  });
+})();
+```
 
-| Squarespace Page Type | What It Does | Best Used For |
-|----------------------|--------------|---------------|
-| Regular Page | Single content page, drag-and-drop blocks | Home, About, Contact, Writing index, individual writing samples |
-| Portfolio Page | Index page with cards linking to sub-pages; built for visual project showcasing | Work index — this is the native fit for a portfolio gallery |
-| Blog Page | Index of posts in reverse-chronological order; each post is a sub-page | Not recommended for primary portfolio use; lacks gallery-style layout control |
-| Folder | Navigation grouping — contains other pages but is not itself a content page | Grouping Writing + Earlier Work under a nav umbrella |
-| Link | Nav item that links to an external URL | Resume PDF link, itch.io, external writing |
-| Gallery Page | Grid/slider of images; minimal text | Useful for image-heavy showcases, but limited for case studies with text |
-
-### Mapping Portfolio Needs to Squarespace Page Types
-
-**Home page** → Regular Page. Full creative control via blocks. Hero section, featured project cards (using summary blocks linked to Portfolio), about-bridge section.
-
-**Work index** → Portfolio Page. This is Squarespace's native portfolio collection type. Each project is a Portfolio sub-page (its own full-length page). The index displays as a grid of cards. Supports thumbnail images, titles, and excerpts per card.
-
-**Individual project pages** → Portfolio sub-pages within the Work Portfolio Page. Each gets a full-length page with all block types available (text, image, video, embed, file/PDF, code for custom JS).
-
-**Writing section** → Either:
-- A Portfolio Page (if you want a visual card-grid with writing thumbnails)
-- A Regular Page with a styled list of links (simpler, works well if writing samples are PDFs or external links)
-- A Blog Page (if writing will be added frequently and reverse-chronological order makes sense — but this is flagged as out of scope)
-
-**Earlier Work / Retrospectives** → Portfolio Page (separate from Work), or a Folder containing individual Regular Pages. A separate Portfolio Page is preferable — it maintains the same card-grid visual language as Work while being clearly distinct in nav.
-
-**About** → Regular Page. Long-form content, image, resume PDF download.
-
-**Contact** → Either a standalone Regular Page with a Form block, or a section appended to the About page.
-
-### Navigation Configuration in Squarespace
-- Main navigation is configured in Pages panel — items can be Regular Pages, Portfolio Pages, Folders, or Links.
-- Not Linked pages (pages that exist but are not in the nav) are useful for: pages you're building but not ready to share, project pages accessed only through the Work index, and thank-you pages after form submissions.
-- A Folder in the nav creates a dropdown. Use sparingly — dropdowns add interaction friction and are harder to style consistently with custom CSS.
-- Squarespace footer navigation is configured separately from the header nav. The footer nav can include items not in the header (e.g., resume PDF, social links).
-
-### Custom CSS + JS in Squarespace
-- CSS injection: Design panel → Custom CSS. Applied site-wide.
-- JS injection and external script loading (e.g., GSAP CDN): Settings → Advanced → Code Injection → Header.
-- Per-page code injection: Available on Business plan and above. Allows page-specific JS for custom animations on specific pages without affecting site-wide performance.
-- GSAP loaded via CDN in header injection is available on all pages site-wide once added. Page-specific GSAP ScrollTrigger setups can be initialized in per-page code injection or gated with URL checks in a site-wide script.
-
-### Squarespace Summary Blocks
-Summary Blocks are a key structural tool: they display a grid or list of items from another collection (Portfolio, Blog) on any Regular Page. This is how the Home page can show featured project cards pulled from the Work Portfolio collection — without manually duplicating content. The featured cards on Home are a Summary Block pointed at the Work Portfolio, filtered or ordered to show only featured items.
-
-### Squarespace Portfolio Sub-Page URLs
-By default, Portfolio sub-page URLs follow the pattern `/work/project-name`. This is clean and appropriate. If the Work Portfolio page slug is set to `/work`, all project pages will be at `/work/[project-slug]`. Set the Work page slug deliberately before publishing — changing it later breaks any external links to project pages.
+**Note on absolute paths:** Use `/js/nav.js`, `/includes/nav.html` (root-relative paths) consistently. Relative paths like `../../includes/nav.html` break when pages are nested at different depths.
 
 ---
 
-## Notes for Roadmap
+### Pattern 2: CSS Custom Properties as the Single Source of Design Tokens
 
-The following architectural insights should directly inform phase planning:
+**What:** All design values — colors, type scale, spacing, animation timing — are defined once in `css/tokens.css` as CSS custom properties on `:root`. Every other CSS file uses `var(--token-name)` to reference them. JS animation values (GSAP durations, easing) read from computed style.
 
-**1. Identity-first, evidence-second is the right phase order.**
-Phase 1 of the build is the home page and its philosophy statement — not the project pages. Visitors need to understand the "why" before the "what." This means the Home page is not a wrapper to be built last; it's the first thing to get right.
+**When to use:** Always, on any project where the owner may need to adjust color, spacing, or animation timing without hunting through multiple CSS files.
 
-**2. One complete project page before replicating.**
-Build one case study page fully before creating additional project pages. The first project page is the template. Validate it before scaling. This avoids reworking the same structural decisions six times.
+**Trade-offs:**
+- Pro: One-file design system. Change `--color-accent` in tokens.css, the change propagates everywhere.
+- Pro: JS can read CSS values with `getComputedStyle(document.documentElement).getPropertyValue('--anim-duration')` — GSAP durations stay in sync with CSS transitions.
+- Pro: Satisfies REQ-F03 and REQ-Anim06 directly.
+- Con: CSS custom properties are not supported in IE11 — irrelevant in 2026.
 
-**3. The Work Portfolio page slug must be set before any project is published.**
-`/work` as the slug should be locked in at the start of Phase 3. Changing the parent Portfolio page slug after project sub-pages are live changes all their URLs.
+**Example — tokens.css structure:**
 
-**4. Writing and Earlier Work are Phase 5, not Phase 1.**
-These sections have the most complex framing requirements (especially retrospectives) and the least urgency for v1. They should be scaffolded (nav items that say "Coming soon" or simply hidden from nav) while Work and About are built out.
+```css
+/* css/tokens.css */
+:root {
+  /* ─── Color ─── */
+  --color-bg:         #F7F3EE;   /* warm paper white */
+  --color-text:       #2A2118;   /* warm near-black */
+  --color-accent:     #C4602A;   /* terracotta / origami fold color */
+  --color-muted:      #7A6E65;   /* secondary text */
+  --color-border:     #E0D8D0;
 
-**5. The retrospectives frame is a structural differentiator.**
-"What I'd Change" as a section is not common in game design portfolios. It requires its own section — not a footnote in the Work section — because the framing is doing active rhetorical work. It tells visitors: this designer is self-aware and has a growth mindset. That is worth a dedicated place in the nav, not just a paragraph in About.
+  /* ─── Typography ─── */
+  --font-display:     'YourDisplayFont', Georgia, serif;
+  --font-body:        'YourBodyFont', system-ui, sans-serif;
+  --font-mono:        'YourMonoFont', monospace;
 
-**6. Mobile must be validated during build, not at the end.**
-GSAP animations and custom CSS transforms (especially 3D origami folds) often break on mobile viewports or have performance issues. Each phase that adds animation should include a mobile check step, not a single mobile review at the end.
+  --size-xs:    0.75rem;   /* 12px */
+  --size-sm:    0.875rem;  /* 14px */
+  --size-base:  1rem;      /* 16px */
+  --size-lg:    1.25rem;   /* 20px */
+  --size-xl:    1.5rem;    /* 24px */
+  --size-2xl:   2rem;      /* 32px */
+  --size-3xl:   2.75rem;   /* 44px */
+  --size-4xl:   3.5rem;    /* 56px */
 
-**7. Contact friction should be near zero.**
-For a v1 "just enough to share" site, Contact can live as a section within About. Adding it as a standalone page adds a nav item and a click without proportionally increasing conversions. Revisit once the site is live and you understand how visitors are arriving.
+  /* ─── Spacing ─── */
+  --space-1:    0.25rem;
+  --space-2:    0.5rem;
+  --space-3:    0.75rem;
+  --space-4:    1rem;
+  --space-6:    1.5rem;
+  --space-8:    2rem;
+  --space-12:   3rem;
+  --space-16:   4rem;
+  --space-24:   6rem;
 
-**8. Featured project cards on Home should use Summary Blocks.**
-Do not manually duplicate project information on the Home page. Use Squarespace Summary Blocks pointed at the Work Portfolio collection. This ensures that updating a project page automatically updates its card on the Home page — one source of truth.
+  /* ─── Animation ─── */
+  --anim-duration-fast:    0.2s;
+  --anim-duration-base:    0.4s;
+  --anim-duration-slow:    0.6s;
+  --anim-duration-fold:    0.7s;
+  --anim-ease-fold:        cubic-bezier(0.77, 0, 0.175, 1);
+  --anim-perspective:      1200px;
 
-**9. Writing samples attached to projects vs. standalone.**
-Some writing will live on project pages (attached narrative docs, design briefs specific to a project). Some will live in the Writing section (standalone essays, voice samples). Decide which writing belongs where at the content inventory stage — before building — to avoid duplicating or misplacing content.
+  /* ─── Layout ─── */
+  --width-content:    720px;
+  --width-wide:       1100px;
+  --radius-sm:        4px;
+  --radius-base:      8px;
+}
+```
 
-**10. v1 is a URL, not a finished site.**
-The success condition for v1 is a linkable, professional URL with correct structure and 1–2 complete projects. The navigation can include placeholder sections. The site's job at v1 is to not embarrass itself when someone clicks through from a job application — not to be comprehensive. Scope accordingly.
+---
+
+### Pattern 3: GSAP ScrollTrigger Initialization on Static Multi-Page Sites
+
+**What:** On a static multi-page site (not an SPA), each page navigated to is a full browser load. `DOMContentLoaded` fires reliably on every page. There is no AJAX navigation to work around (unlike Squarespace). The initialization pattern is therefore simpler than the Squarespace version.
+
+**When to use:** This is the standard GSAP init pattern for GitHub Pages static sites. Use it on every page that has scroll animations.
+
+**Trade-offs:**
+- Pro: Simple. `DOMContentLoaded` is reliable. No framework lifecycle to manage.
+- Pro: Each page's GSAP context is isolated — no risk of ScrollTrigger instances from Page A polluting Page B.
+- Con: GSAP must be loaded on every page via CDN (or you skip it on pages with no animations using a guard).
+
+**Correct initialization pattern:**
+
+```html
+<!-- In <head> of every HTML file -->
+<!-- Load GSAP before </head> so it is available immediately -->
+<script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/ScrollTrigger.min.js" defer></script>
+
+<!-- OR: load at bottom of <body> without defer -->
+<!-- Both work. Bottom-of-body without defer is marginally simpler to reason about. -->
+```
+
+```html
+<!-- At the bottom of <body>, AFTER GSAP script tags -->
+<script>
+  // Guard: only run if GSAP is loaded (handles JS-disabled or CDN failure)
+  if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
+
+    // 1. Register the plugin — required before any ScrollTrigger usage
+    gsap.registerPlugin(ScrollTrigger);
+
+    // 2. Respect prefers-reduced-motion (REQ-Anim03)
+    var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // 3. Respect mobile viewport (REQ-Anim04)
+    var isMobile = window.innerWidth < 768;
+
+    if (!prefersReducedMotion && !isMobile) {
+      // Full 3D fold animations
+      gsap.from('.project-card', {
+        scrollTrigger: {
+          trigger: '.work-grid',
+          start: 'top 75%',
+          toggleActions: 'play none none none'
+        },
+        rotationX: -45,
+        transformPerspective: 'var(--anim-perspective)',  // reads CSS var
+        opacity: 0,
+        y: 40,
+        stagger: 0.1,
+        duration: 0.7,
+        ease: 'power2.out'
+      });
+    } else {
+      // Reduced motion / mobile: simple fade only
+      gsap.from('.project-card', {
+        scrollTrigger: {
+          trigger: '.work-grid',
+          start: 'top 75%',
+        },
+        opacity: 0,
+        y: 20,
+        stagger: 0.08,
+        duration: 0.4,
+        ease: 'power1.out'
+      });
+    }
+
+  }
+  // If GSAP is not available, cards display at full opacity via CSS default
+</script>
+```
+
+**Key facts about GSAP ScrollTrigger on static sites (HIGH confidence — GSAP v3 docs):**
+- `gsap.registerPlugin(ScrollTrigger)` must be called exactly once per page before any `ScrollTrigger` usage. On a static multi-page site, "once per page" means once per full page load — this is automatic.
+- `ScrollTrigger.refresh()` is needed when page layout shifts after initial render (lazy-loaded images, dynamically injected content). For a static portfolio with no lazy loading, it is not required at init.
+- ScrollTrigger `trigger` elements must exist in the DOM when `scrollTrigger` is created. Since the script runs at bottom of body (after DOM is parsed), all page elements are present.
+- Do NOT wrap GSAP init in `DOMContentLoaded` when the script is at the bottom of `<body>` — the DOM is already loaded. Use `DOMContentLoaded` only if the script is in `<head>`.
+
+---
+
+### Pattern 4: CSS Architecture for a No-Build Static Site
+
+**What:** CSS is split into 5 purpose-specific files, all loaded on every page. No build step, no preprocessor, no scoped CSS. Class naming follows a lightweight BEM convention (but not strict BEM) — semantic and readable over systematic.
+
+**When to use:** Right-sized for a 10-page site maintained by an owner with limited coding experience. Full BEM is overkill; utility-class frameworks (Tailwind) require a build step and are hard to debug without tooling.
+
+**Trade-offs:**
+- Pro: No tooling required. Works directly on GitHub Pages.
+- Pro: Each file has a single responsibility — easy to know where to look for any given style.
+- Pro: All 5 files are small enough that the total CSS payload is not a concern (estimate: <30KB unminified for a site this size).
+- Con: No tree-shaking. Every page loads the full CSS. Acceptable at this scale.
+- Con: Global CSS means class name collisions are possible. Naming discipline prevents this.
+
+**The 5-file CSS structure:**
+
+| File | Contains | Loaded on |
+|------|----------|-----------|
+| `tokens.css` | `:root` custom properties only | Every page (first) |
+| `base.css` | CSS reset, `body`, `html`, `a`, `p`, `h1-h6` defaults | Every page |
+| `layout.css` | `.page-wrapper`, `.content-container`, `.section`, grid/flex skeletons | Every page |
+| `components.css` | `.nav`, `.footer`, `.card`, `.project-hero`, `.writing-entry`, `.btn`, etc. | Every page |
+| `animations.css` | `.fold-panel`, `@keyframes`, `transform-style`, `prefers-reduced-motion` overrides | Every page |
+
+**Naming convention — lightweight BEM:**
+
+```css
+/* Block */
+.project-card { }
+
+/* Element (double-underscore) */
+.project-card__title { }
+.project-card__image { }
+.project-card__role { }
+
+/* Modifier (double-dash) */
+.project-card--featured { }
+.project-card--placeholder { }
+
+/* State (is- prefix, not BEM) — applied by JS */
+.is-visible { }
+.is-folded { }
+.nav-active { }   /* applied by nav.js to current page link */
+```
+
+**Do not use:** Utility classes (Tailwind-style inline HTML classes). Without a build tool, purging unused utilities is not possible, and the HTML becomes hard to read for an owner who is learning as they go.
+
+---
+
+### Pattern 5: Base HTML Template (Copy-Paste, Not Generated)
+
+**What:** Since there is no static site generator, each HTML page is a complete standalone document. A base template is established and manually copied when creating new pages. All shared chrome (nav placeholder, footer placeholder, CSS links, GSAP script tags) is defined once in this template and copied verbatim.
+
+**When to use:** With fewer than 15 pages, manual copying is manageable. If repetition becomes a significant maintenance burden after v1, migrate to Eleventy (no-config static site generator that adds minimal complexity).
+
+**Trade-offs:**
+- Pro: Zero tooling. No CLI, no Node, no config. Works immediately.
+- Pro: Owner can open any HTML file and read/edit it directly.
+- Con: Adding a new CSS file to every page requires editing every HTML file. Keep the number of CSS and JS files small and stable.
+- Con: If shared nav HTML changes structurally (not content — `_includes/nav.html` handles content), all pages need updating. This is rare.
+
+**Base template — every page uses this structure:**
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PAGE TITLE — Origami Games</title>
+  <meta name="description" content="PAGE DESCRIPTION">
+
+  <!-- Design tokens must load first -->
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/animations.css">
+
+  <!-- GSAP via CDN — defer so it doesn't block render -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/ScrollTrigger.min.js" defer></script>
+</head>
+<body>
+
+  <!-- Shared nav placeholder — populated by nav.js -->
+  <div id="site-nav" aria-label="Main site navigation"></div>
+
+  <!-- Page-specific content goes here -->
+  <main id="main-content">
+    <!-- PAGE CONTENT -->
+  </main>
+
+  <!-- Shared footer placeholder — populated by nav.js -->
+  <div id="site-footer"></div>
+
+  <!-- Shared JS: inject nav/footer, set active state -->
+  <script src="/js/nav.js"></script>
+
+  <!-- Page-specific animation init — inline or external -->
+  <!--
+  <script>
+    // Page-specific GSAP code here (see Pattern 3)
+  </script>
+  -->
+
+</body>
+</html>
+```
+
+**Note on `defer` and script order:** GSAP scripts use `defer` (load in parallel, execute after HTML is parsed). The inline animation `<script>` at the bottom of body has no `defer` — it runs inline after the DOM is available. Since defer scripts execute before the `DOMContentLoaded` event and the inline script runs after them in document order, GSAP will be available when the inline animation script runs. This order is reliable.
+
+---
+
+## Data Flow
+
+### Page Load Flow (Static Site)
+
+```
+Browser requests URL
+    |
+    v
+GitHub Pages serves matching index.html
+    |
+    v
+Browser parses HTML
+    |-- Loads CSS files in parallel (tokens -> base -> layout -> components -> animations)
+    |-- Loads GSAP CDN scripts (deferred, parse-non-blocking)
+    |
+    v
+DOM parsed — DOMContentLoaded fires
+    |
+    v
+nav.js DOMContentLoaded callback fires
+    |-- fetch('/includes/nav.html') -> inject into #site-nav
+    |-- fetch('/includes/footer.html') -> inject into #site-footer
+    |-- setActiveNavItem() marks current page in nav
+    |
+    v
+Deferred GSAP scripts finish loading
+    |
+    v
+Inline animation <script> at bottom of <body> executes
+    |-- gsap.registerPlugin(ScrollTrigger)
+    |-- Checks prefers-reduced-motion, viewport width
+    |-- Creates ScrollTrigger instances for visible elements
+    |
+    v
+User scrolls — ScrollTrigger fires animations
+```
+
+### Navigation Flow (Multi-Page, No SPA)
+
+```
+User clicks nav link
+    |
+    v
+Full browser navigation (not AJAX, not SPA)
+    |
+    v
+New HTML page loads fresh
+    |
+    v
+All of the above runs from the top
+```
+
+**Key implication:** There is no shared JS state between pages. GSAP ScrollTrigger instances created on Page A are garbage-collected when the user navigates to Page B. Each page is completely independent. This is simpler than SPA architectures and requires no special teardown code.
+
+---
+
+## Scaling Considerations
+
+This is a 10-page portfolio. Scale is not a concern in the traditional sense. The relevant evolution path is:
+
+| Trigger | Adjustment |
+|---------|------------|
+| More than 15 pages (v2 expansion) | Migrate to Eleventy — one-time effort, no templating language to learn beyond HTML |
+| Nav/footer changes feel painful to maintain | Already handled by JS includes — no action needed unless structure changes |
+| CSS files become hard to navigate | Consider splitting components.css into sub-files (cards.css, nav.css, etc.) |
+| Images slow page load | Compress to WebP at 80% quality; add `loading="lazy"` to below-fold images |
+| Animations feel heavy on mobile | Already guarded by viewport check; tune thresholds in tokens.css |
+
+---
+
+## Anti-Patterns
+
+### Anti-Pattern 1: Relative Paths for Shared Assets
+
+**What people do:** Link CSS, JS, and includes using paths relative to the current file, e.g., `href="../../css/tokens.css"`.
+
+**Why it's wrong:** Pages at different nesting depths (root `index.html` vs `work/project-slug/index.html`) need different relative paths for the same file. When a new page is created at a new depth, paths break silently.
+
+**Do this instead:** Use root-relative (absolute from domain root) paths everywhere: `/css/tokens.css`, `/js/nav.js`, `/includes/nav.html`. These work identically regardless of page nesting depth. GitHub Pages serves from the repo root, so `/css/tokens.css` resolves correctly on any page.
+
+---
+
+### Anti-Pattern 2: Inline Styles for Design Values
+
+**What people do:** Write `style="color: #C4602A; margin-top: 2rem;"` directly in HTML to make something look right quickly.
+
+**Why it's wrong:** Inline styles override everything. They are invisible to the CSS cascade and cannot be changed from tokens.css. When the accent color changes, every inline style must be found and updated manually.
+
+**Do this instead:** Add a class or modify the relevant CSS rule. If a value needs to exist in JS, add it to tokens.css and read it with `getComputedStyle`.
+
+---
+
+### Anti-Pattern 3: GSAP `defer` with DOMContentLoaded Guard in Inline Script
+
+**What people do:** Load GSAP with `defer`, then wrap the inline animation script in `document.addEventListener('DOMContentLoaded', ...)`.
+
+**Why it's wrong:** When GSAP scripts use `defer`, they execute after HTML parsing but before `DOMContentLoaded`. An inline script at the bottom of `<body>` runs synchronously after all preceding deferred scripts have executed (deferred scripts execute in document order before `DOMContentLoaded`). Wrapping the inline script in a `DOMContentLoaded` listener creates a race: if the event has already fired before the listener is attached, the callback never runs.
+
+**Do this instead:** Place the inline animation script at the very bottom of `<body>`, after the GSAP `<script>` tags. Do not wrap it in `DOMContentLoaded`. The DOM is fully available at that point and GSAP is loaded.
+
+---
+
+### Anti-Pattern 4: One Giant CSS File
+
+**What people do:** Put all CSS in a single `styles.css` because it is simpler to manage initially.
+
+**Why it's wrong:** Without organization, the file grows past 500 lines and becomes difficult to navigate. Finding the `.nav` styles requires searching. Design tokens are mixed with component rules. The owner cannot confidently make changes.
+
+**Do this instead:** Use the 5-file structure from Pattern 4. Files stay small and purposeful. `tokens.css` is where the owner should look first for any visual adjustment.
+
+---
+
+### Anti-Pattern 5: Creating Project Pages Before the /work/ Index
+
+**What people do:** Build individual project pages first because the content is ready, then create the Work index later.
+
+**Why it's wrong:** If the Work index page is created at a different slug (e.g., `/projects/` instead of `/work/`) after project sub-pages already exist, internal links are broken and must all be updated manually. This is REQ-F07 for a reason.
+
+**Do this instead:** Create `work/index.html` as the first act of Phase 3, before any `work/[slug]/index.html` pages. Lock in the URL structure.
+
+---
+
+## Integration Points
+
+### External Services
+
+| Service | Integration Pattern | Notes |
+|---------|---------------------|-------|
+| GitHub Pages | Push to main branch → auto-deploy | No build step needed for raw HTML. Confirm Pages is set to serve from root or `/docs` in repo settings. |
+| GSAP CDN (jsDelivr) | `<script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/...">` | Version-pinned to major version `@3` — gets latest 3.x patches automatically. Pin to minor (e.g., `@3.12`) if stability is a priority. |
+| Custom domain | CNAME file in repo root (already exists) + DNS A/CNAME records pointing to GitHub Pages IPs | HTTPS is automatic once DNS propagates. |
+| Resume PDF | Static file in `assets/pdfs/resume.pdf` | Direct link `<a href="/assets/pdfs/resume.pdf" download>`. No server needed. |
+| External links | `<a href="..." target="_blank" rel="noopener noreferrer">` | `rel="noopener noreferrer"` prevents tab-napping and is required for all external links. |
+
+### Internal Boundaries
+
+| Boundary | Communication | Notes |
+|----------|---------------|-------|
+| HTML ↔ CSS | `class` attributes, CSS selectors | No specificity hacks. Semantic class names only. |
+| HTML ↔ JS | DOM selectors (`getElementById`, `querySelector`) | JS reads the DOM; never writes inline styles; uses `classList` for state changes. |
+| CSS ↔ JS | CSS custom properties read via `getComputedStyle` | GSAP animation durations should read from `--anim-duration-*` tokens, not be hardcoded. |
+| nav.js ↔ _includes/ | `fetch()` at runtime | Paths must be root-relative. The `_includes/` directory name with underscore is a convention; rename to `includes/` if the underscore prefix causes confusion. |
+| Page A ↔ Page B | `<a href="...">` hyperlinks only | No shared JS state. No localStorage in v1. No cross-page communication needed. |
+
+---
+
+## Build Order for Phase 1 (Foundation Scaffold)
+
+Phase 1 should produce a working scaffold — no content, but all structural wiring correct — so every subsequent phase can add content without revisiting structural decisions.
+
+**Phase 1 deliverables:**
+1. Repo root has `index.html` using the base template pattern
+2. `work/index.html` exists (empty placeholder content, but the URL `/work/` is live)
+3. `about/index.html` exists (placeholder)
+4. `writing/index.html` exists (placeholder, not in nav yet)
+5. `earlier-work/index.html` exists (placeholder, not in nav yet)
+6. All 5 CSS files exist with tokens defined and base styles applied
+7. `_includes/nav.html` and `_includes/footer.html` exist with correct nav structure
+8. `nav.js` working: nav injects and active state applies correctly on each page
+9. GSAP loads via CDN and `gsap` is defined on the browser console on every page
+10. Custom domain serving over HTTPS (CNAME already exists per git history)
+
+**Validation test for Phase 1:** Open every page in a browser, confirm nav appears, confirm active state is correct, open browser console and type `gsap` — it should return the GSAP object.
+
+---
+
+## Sources
+
+- GSAP v3 official documentation: gsap.com/docs/v3/Plugins/ScrollTrigger/ — `registerPlugin`, `ScrollTrigger` initialization, `defer` loading pattern (HIGH confidence)
+- MDN: Fetch API, `DOMContentLoaded` event timing, CSS custom properties, `defer` attribute behavior (HIGH confidence — stable web platform features)
+- GitHub Pages documentation: Custom domain configuration, CNAME file, static file serving from root (HIGH confidence)
+- HTML `<script defer>` execution order relative to DOMContentLoaded: well-specified in the HTML Living Standard (HIGH confidence)
+- CSS multi-file architecture for static sites: community convention verified across multiple sources; BEM naming from getbem.com (MEDIUM confidence — convention, not specification)
+- JS fetch-based HTML includes pattern: widely used; confirmed working on GitHub Pages (MEDIUM confidence — tested pattern, no official specification)
+
+---
+
+*Architecture research for: Static HTML/CSS/JS portfolio — GitHub Pages*
+*Researched: 2026-02-24*
+*Note: This file supersedes the earlier ARCHITECTURE.md which was written for Squarespace. Platform changed to GitHub Pages + raw HTML/CSS/JS on 2026-02-24.*

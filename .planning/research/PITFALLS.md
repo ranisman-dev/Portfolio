@@ -1,378 +1,401 @@
-# PITFALLS — Origami Games Portfolio
+# Pitfalls Research
 
-**Project:** Origami Games — Narrative & Experience Engineer Portfolio
-**Research type:** Pitfalls — Greenfield
-**Milestone:** What do game design / narrative design portfolio projects commonly get wrong?
-**Date:** 2026-02-23
-
----
-
-## Overview
-
-This document catalogues critical mistakes made in game design and narrative design portfolio projects — specifically in content strategy, UX, Squarespace customization, CSS/JS implementation, and how the work itself is presented. Each pitfall maps to a warning sign, a prevention strategy, and the phase where it must be addressed.
-
-Pitfalls are organized by domain. They are specific to this project's context: a Squarespace-hosted portfolio for a narrative/experience designer with a clear design philosophy throughline, speaking to multiple audiences (studios, collaborators, freelance clients), using custom CSS/JS injection and GSAP for origami fold transitions.
+**Domain:** Static portfolio site — GitHub Pages + raw HTML/CSS/JS + GSAP 3 + CSS 3D transforms
+**Researched:** 2026-02-24
+**Confidence:** HIGH (GitHub Pages behavior, GSAP API) / MEDIUM (CSS 3D mobile specifics — test required)
 
 ---
 
-## Domain 1: Content Strategy
+## Critical Pitfalls
 
-### P1.1 — Leading with work before establishing identity
+### P-GH1 — File Path Case Sensitivity: Works on Windows, Breaks on GitHub Pages
 
-**The mistake:** The portfolio opens with a project grid or case study list, leaving visitors to reverse-engineer who the designer is from the work itself. Hiring managers skim; if they can't immediately locate a clear POV, they move on.
+**What goes wrong:**
+You write `<img src="Images/Hero.jpg">` or `<link href="CSS/main.css">` on Windows. It works locally because Windows NTFS is case-insensitive. You push to GitHub Pages, which runs on Linux (case-sensitive). The file exists as `images/hero.jpg`. GitHub Pages returns a 404. The broken image or missing stylesheet is invisible until you look at the browser console on the live URL.
 
-**Why it happens:** Designers assume the work speaks for itself. They treat the portfolio as a gallery rather than an argument.
+**Why it happens:**
+Windows developers never encounter the problem locally. All file access "just works" regardless of case. The failure is silently deferred until deployment.
+
+**How to avoid:**
+Establish and strictly enforce a file naming convention before creating any files. Recommended: all lowercase, hyphens not underscores, no spaces. `images/hero-home.jpg`, `css/main.css`, `js/animations.js`. Never deviate. When copying filenames into HTML, copy-paste from the actual filename in your editor sidebar — do not retype them.
 
 **Warning signs:**
-- The home page's first scroll section is a project grid
-- "About" exists only as a buried nav link with a short bio paragraph
-- There is no stated design philosophy anywhere above the fold
+- Any filename with an uppercase letter anywhere in `src`, `href`, `action`, or `url()` attributes
+- Any path where the folder name case doesn't exactly match `href` case
+- Images or stylesheets that load locally but 404 on the live site
 
-**Prevention strategy:** Lead with identity, not inventory. The home page must answer "who is this person and what do they stand for" before presenting a single case study. For this project, the throughline — "designing game systems that encourage players to reflect on their well-being and how they navigate pressure and meaning" — must be present on the landing page, not gatekept behind an About page.
-
-**Phase:** Information architecture / home page wireframe (before any build work begins)
+**Phase to address:** Phase 1 (Foundation) — enforce the naming convention before any files are created. Document it as a project rule.
 
 ---
 
-### P1.2 — Treating all work as equally important
+### P-GH2 — CNAME File Conflict After Custom Domain Setup
 
-**The mistake:** Every project — shipped games, school projects, prototypes, jams — appears in the same grid with the same visual weight. This flattens the hierarchy and forces visitors to do curation work the designer should have done.
+**What goes wrong:**
+You configure a custom domain in GitHub Pages settings. GitHub creates (or expects) a `CNAME` file at the repository root containing the domain name. If you manually delete this file, rename it, accidentally overwrite it during a `git pull`, or create a second `CNAME` file, GitHub Pages stops serving on the custom domain. The site may fall back to the `username.github.io` URL or return no response. HTTPS provisioning via Let's Encrypt also fails or resets when the CNAME is missing or inconsistent.
 
-**Why it happens:** Designers are emotionally attached to all their work. They fear removing anything looks like they have less experience.
+**Why it happens:**
+The `CNAME` file is not obviously critical — it looks like a text file containing one line. Developers don't treat it as infrastructure. It gets lost in merge operations or accidentally staged in a `git add .`.
+
+**How to avoid:**
+Treat the `CNAME` file as infrastructure, not content. Commit it once, add a comment in its git history noting its purpose, and never touch it again. If you use `git add .` to stage files, check `git status` before every commit to confirm CNAME has not been accidentally modified. Add a note in your repo README: "Do not delete or modify the CNAME file."
 
 **Warning signs:**
-- More than 6-8 items in the main work section with no visual differentiation
-- School work displayed with the same framing as shipped commercial work
-- Prototypes presented as full projects without contextualizing their scope
+- Custom domain suddenly showing as unverified in GitHub Pages settings
+- Site unreachable at custom domain but reachable at `username.github.io`
+- HTTPS certificate error after domain was previously working
+- `CNAME` missing from repo root after any git operation
 
-**Prevention strategy:** Enforce explicit tiers before building any project page. For this project: shipped games are primary; case studies/design briefs are secondary; prototypes appear only when they illustrate a specific mechanic or design intent; school work lives in a clearly labeled "Retrospectives" section with honest reframing. Commit to this hierarchy in IA before content creation.
-
-**Phase:** Information architecture / content inventory (greenfield)
+**Phase to address:** Phase 1 (Foundation — REQ-F09) — add CNAME to repo immediately after custom domain is configured. Mark it protected in your mental model.
 
 ---
 
-### P1.3 — Writing case studies that describe instead of analyze
+### P-GH3 — HTTPS Certificate Not Automatically Provisioned
 
-**The mistake:** Case study text narrates what happened during development ("I made a puzzle system, then I iterated on it") rather than articulating design thinking ("The puzzle system needed to create a moment of internal conflict — here's how I got there and what I learned when it didn't work").
+**What goes wrong:**
+You set the custom domain in GitHub Pages settings and the CNAME DNS record points to GitHub. But `Enforce HTTPS` cannot be enabled — the checkbox is greyed out. This happens when DNS has not fully propagated or when the domain is configured as a root domain (apex domain like `origamigames.com`) using an A record instead of a CNAME. GitHub Pages uses Let's Encrypt for SSL certificates; provisioning takes up to 24 hours and fails if DNS is inconsistent during that window.
 
-**Why it happens:** It feels vulnerable to expose reasoning that led to wrong turns. Description feels safer.
+**Why it happens:**
+Developers check HTTPS immediately after configuring DNS, find it greyed out, assume something is broken, make additional DNS changes, and reset the provisioning clock. The patience required (up to 24 hours) is unintuitive.
+
+**How to avoid:**
+Configure DNS correctly once and then wait. For apex domains, use four specific A records pointing to GitHub Pages IP addresses (documented in GitHub Pages docs). For `www` subdomains, use a CNAME. After configuring, do not make DNS changes for at least 24 hours. Verify propagation with a DNS checker before concluding something is wrong. Only then enable `Enforce HTTPS` in GitHub settings.
 
 **Warning signs:**
-- Case studies are structured as project summaries or timelines
-- No mention of constraints, failures, or pivots
-- The word "I" is followed by verbs of action, not verbs of reasoning ("I built" vs. "I realized")
+- `Enforce HTTPS` greyed out immediately after setup (this is normal — wait)
+- Multiple DNS records for the same subdomain/apex (conflict)
+- Changing DNS providers mid-setup
 
-**Prevention strategy:** For each project, write a brief that answers three questions before writing the case study: What was the design problem? What did I try that didn't work? What decision mattered most and why? Use these as the structural skeleton of the case study narrative. For this project, each case study should connect back to the throughline — how does this game help players reflect on well-being or meaning?
-
-**Phase:** Content creation (before any project page is built)
+**Phase to address:** Phase 1 (Foundation — REQ-F09). Allow a 24-hour window between DNS configuration and HTTPS verification.
 
 ---
 
-### P1.4 — Failing to serve multiple audiences from a single site
+### P-GH4 — 404 Page Behavior: No Server-Side Routing
 
-**The mistake:** The portfolio is implicitly written for one audience (usually studios/hiring managers) and becomes illegible or off-putting to other audiences (indie collaborators, freelance clients). The voice, framing, and calls to action don't flex.
+**What goes wrong:**
+GitHub Pages has no server-side routing. A URL like `origamigames.com/work/project-one` works only if the file `work/project-one/index.html` exists or `work/project-one.html` exists at exactly that path. There is no redirect, no fallback handler, no SPA routing. If someone bookmarks a URL or follows a shared link and the file at that path doesn't exist, they get GitHub's default `404.html` or a bare 404 page with no navigation back to your site.
 
-**Why it happens:** Multi-audience strategy requires deliberate architecture. Without it, the default is to write for whoever feels most important at the moment.
+**Why it happens:**
+Developers who have used any framework (React, Vue, Next.js, even Squarespace) are accustomed to routing being handled. On GitHub Pages, the URL literally IS the file path.
+
+**How to avoid:**
+Use the `folder/index.html` pattern for every section. `/work/` should be `work/index.html`. `/about/` should be `about/index.html`. Never link to a URL that doesn't have a corresponding file. Create a custom `404.html` at the repo root with your site's nav and a friendly message — GitHub Pages serves this file when any path returns 404. Test all internal links before sharing any URL.
 
 **Warning signs:**
-- No clear call to action for collaborators or clients (only "hire me" or application-oriented CTAs)
-- Writing assumes industry vocabulary (e.g. "GDD," "systems design") without defining it for non-studio audiences
-- The "About" page talks only about job history, not values or ways of working
+- Any internal `href` that doesn't match an actual file path in the repo
+- Linking to `/work` when the file is `work.html` (requires trailing slash handling)
+- No custom `404.html` in the repo root
 
-**Prevention strategy:** Define what each audience needs to walk away with, then map that to site sections. For this project: studios need proof of craft + intentionality (case studies, design briefs); collaborators need evidence of compatible values (philosophy, writing samples, process notes); clients need proof of purposeful design (about page framing, project scope/outcomes). Write the About page to speak to all three. Avoid jargon without context.
-
-**Phase:** Information architecture + about page / writing (greenfield, before content)
+**Phase to address:** Phase 1 (Foundation — REQ-F07) for path structure; add custom `404.html` in Phase 1 or Phase 8 (Pre-Launch).
 
 ---
 
-### P1.5 — Burying or hiding retrospectives on school work
+### P-GH5 — Relative vs. Absolute Paths: The Deep-Nesting Trap
 
-**The mistake:** School work either gets displayed as if it were commercial work (misleading), omitted entirely (wastes learning), or buried in an unlabeled archive (invisible). None of these serve the designer.
+**What goes wrong:**
+Your CSS link works on the home page (`index.html`) at the repo root: `<link href="css/main.css">`. You create a project page at `work/project-one/index.html` and copy-paste the same link. It now resolves to `work/project-one/css/main.css`, which doesn't exist. The page renders with no styles. The same problem hits image `src` attributes, JS script paths, and navigation `href` links.
 
-**Why it happens:** School work feels embarrassing — either too amateur to show or too old to be relevant.
+**Why it happens:**
+Relative paths resolve relative to the current file's directory, not the repo root. Copy-pasting HTML between pages at different directory depths silently breaks paths.
 
-**Prevention strategy:** A "What I'd Change" retrospective section is a differentiator, not a liability. Hiring managers consistently say they want to see designers who can critically evaluate their own work. The retrospective framing — honest, analytical, forward-looking — demonstrates exactly that. The section needs clear labeling ("Earlier Work / Retrospectives") so no one is confused about context. This project has already identified this structure; the pitfall is failing to execute it with genuine critical analysis rather than surface-level "I learned a lot."
+**How to avoid:**
+Use root-relative paths (starting with `/`) for all shared assets: `<link href="/css/main.css">`, `<script src="/js/animations.js">`. Root-relative paths always resolve from the site root regardless of how deeply nested the current HTML file is. The only exception: this does NOT work when opening HTML files directly in a browser from the filesystem (file:///) — you must use a local server (VS Code Live Server extension, Python `http.server`, etc.) to test root-relative paths correctly.
 
 **Warning signs:**
-- Retrospective entries read like apologies rather than analysis
-- School projects appear in the main work section without distinguishing labels
-- The "What I'd Change" framing is used but the writing doesn't actually critique anything specific
+- Any `src` or `href` that uses `../` to navigate up directories (brittle, breaks when files move)
+- Styles or scripts that load on some pages but not others
+- Nav links that work from the home page but break from a project sub-page
 
-**Phase:** Content creation / retrospectives section
+**Phase to address:** Phase 1 (Foundation) — establish the path convention in the base template before any pages are created.
 
 ---
 
-## Domain 2: UX and Navigation
+### P-GSAP1 — GSAP/ScrollTrigger Loads After Inline Script Runs
 
-### P2.1 — Navigation that doesn't match the mental model of any audience
+**What goes wrong:**
+You put the GSAP CDN `<script>` tag in the `<head>` and then immediately write a `<script>` block in the `<body>` that calls `gsap.to()` or registers a ScrollTrigger. If the CDN request is slow (network delay, CDN outage), the `gsap` variable is undefined when the inline script runs. You get `ReferenceError: gsap is not defined` in the console and no animations.
 
-**The mistake:** The nav uses internal jargon or designer-centric labels ("Artifacts," "Explorations," "Playground") that mean nothing to a studio recruiter scanning the site in 30 seconds.
+**Why it happens:**
+Script execution order depends on network timing. The CDN `<script>` in `<head>` without `defer` blocks HTML parsing, but if the CDN is slow, scripts further down the page may try to use GSAP before it has loaded.
 
-**Why it happens:** Designers want the navigation to feel expressive and on-brand. This trades clarity for personality.
+**How to avoid:**
+Load GSAP and all GSAP plugins in the `<head>` with no `defer` or `async` attribute (this ensures sequential blocking load — GSAP is available when the rest of the page parses). Put all GSAP initialization code in a `DOMContentLoaded` event listener or at the bottom of `<body>`, after GSAP scripts. Never initialize GSAP animations inline in the middle of body HTML.
+
+```html
+<!-- In <head>: load GSAP synchronously so it's available -->
+<script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/ScrollTrigger.min.js"></script>
+
+<!-- At bottom of <body> or in external JS file: initialize -->
+<script>
+  gsap.registerPlugin(ScrollTrigger);
+  document.addEventListener('DOMContentLoaded', function() {
+    // All GSAP code here
+  });
+</script>
+```
 
 **Warning signs:**
-- Nav labels require explanation
-- Users can't predict what they'll find before clicking
-- The "Work" section is labeled something other than "Work," "Projects," or "Games"
+- `ReferenceError: gsap is not defined` in browser console
+- Animations work on fast connections but fail on slow/throttled connections
+- ScrollTrigger not triggering on first page load
 
-**Prevention strategy:** Nav labels must be self-evident on first read. Personality comes from visual design and content — not from making navigation cryptic. Use: Work, Writing, About. If the Retrospectives section needs to exist in navigation, label it clearly. Only use unconventional labels if user testing confirms zero confusion.
-
-**Phase:** Information architecture (before any Squarespace template selection)
+**Phase to address:** Phase 1 (Foundation — REQ-F04) — establish the correct loading pattern in the base template.
 
 ---
 
-### P2.2 — Project pages with no clear reading path
+### P-GSAP2 — ScrollTrigger Calculates Wrong Positions on Page Load
 
-**The mistake:** Project pages are a collage — screenshots, a wall of text, a PDF embed, some links — with no hierarchy guiding the visitor through the design story. Visitors scan, bounce, and conclude the designer can't communicate.
+**What goes wrong:**
+ScrollTrigger calculates scroll positions and trigger points when the page loads. If images are not yet loaded, the page height is shorter than it will be once images fill in. All ScrollTrigger trigger points are calculated against a shorter page, so every animation fires too early or at the wrong scroll position. This is especially common with large hero images.
 
-**Why it happens:** Designers pack everything in because they don't want to leave anything out. Editing feels like losing.
+**Why it happens:**
+`DOMContentLoaded` fires when HTML is parsed, not when images are loaded. If ScrollTrigger initializes at `DOMContentLoaded`, image heights are unknown. The page expands as images load, but ScrollTrigger's calculated positions do not update unless explicitly told to refresh.
+
+**How to avoid:**
+Initialize ScrollTrigger inside `window.addEventListener('load', ...)` rather than `DOMContentLoaded` — this fires after all images and resources are loaded. Alternatively, call `ScrollTrigger.refresh()` after the page's images have loaded. Also: set explicit `width` and `height` attributes on all `<img>` tags — this tells the browser how much space to reserve before the image loads, stabilizing layout early.
 
 **Warning signs:**
-- Project pages open with a full-bleed screenshot and immediately present a wall of body text
-- No visual breaks, pull quotes, or structured sections within the case study
-- PDFs are embedded inline without context for what they contain
+- Scroll animations trigger too early (before the target element is in view)
+- Pinned sections release at the wrong scroll position
+- Animations work correctly after a page refresh (Cmd+Shift+R) but not on first load
+- Page layout shifts visible as images load (also indicates missing width/height on images)
 
-**Prevention strategy:** Design a reusable project page template before building any individual project pages. Define the sections: hook (1-2 sentence summary of design problem), context (scope, role, constraints), process (key decisions + reasoning, not timeline), outcomes (what shipped, what worked, what didn't), attached writing (clearly labeled). Build this in Squarespace as a page template or use consistent block ordering.
-
-**Phase:** Project page template design (before first project page)
+**Phase to address:** Phase 8 (Origami Fold Transitions — REQ-Anim01); verify during each phase that adds new images.
 
 ---
 
-### P2.3 — Making contact / collaboration too hard to find
+### P-GSAP3 — ScrollTrigger Does Not Re-Initialize on Page Navigation
 
-**The mistake:** There's no clear "contact" CTA accessible from any page. Visitors who are interested have to hunt for an email address or form. They don't.
+**What goes wrong:**
+On a static multi-page site, every page navigation is a full HTML document load. This is actually the correct behavior — unlike SPAs, there is no stale ScrollTrigger state from a previous page. However, the pitfall works in reverse: if you copy GSAP initialization code between pages and it has any state shared between pages (global variables, shared ScrollTrigger instances), those can conflict. More commonly: a ScrollTrigger animation that was built and tested on the home page stops working on a project page because the target element selectors don't exist on that page, generating silent console errors.
 
-**Why it happens:** Designers add contact info to the About page and assume that's sufficient.
+**Why it happens:**
+Developers write GSAP initialization in a single shared JS file that runs on every page. Selectors like `#hero-fold` exist only on the home page. The code runs fine on the home page but generates `null` reference errors silently on all other pages.
+
+**How to avoid:**
+Write GSAP initialization code defensively. Before calling `gsap.to()` or registering a ScrollTrigger, check that the target element exists: `const hero = document.querySelector('#hero-fold'); if (hero) { /* animate it */ }`. Alternatively, organize JS so that page-specific animations live in page-specific `<script>` blocks at the bottom of that page's HTML, and only truly global behaviors (nav hover states, etc.) live in the shared JS file.
 
 **Warning signs:**
-- "Contact" doesn't appear in the main nav
-- No email address or contact form reachable within two clicks from the home page
-- The footer doesn't include contact info or social links
+- Console errors like `Cannot read properties of null` on any page
+- Animations missing on specific pages when they should be present
+- `ScrollTrigger` warning messages in console about missing targets
 
-**Prevention strategy:** Contact should be accessible from every page — either as a nav item, a persistent footer, or a CTA block on the home page. For this project (targeting studios, collaborators, and clients), each of whom may want different kinds of contact, a simple contact form with a brief framing ("Whether you're looking to hire, collaborate, or just talk about design...") handles multi-audience gracefully.
-
-**Phase:** Site structure / Squarespace template setup
+**Phase to address:** Phase 8 (Origami Fold Transitions); Phase 2 (Home/Landing) for initial pattern setup.
 
 ---
 
-## Domain 3: Squarespace-Specific Customization
+### P-GSAP4 — CSS `transform-style: preserve-3d` Not Applied to All Ancestors
 
-### P3.1 — Choosing a template that fights the design vision
+**What goes wrong:**
+You apply `transform-style: preserve-3d` to the element you want to fold. The 3D effect appears flat — it looks like a 2D rotation, not a genuine perspective fold. This happens because CSS 3D contexts require `transform-style: preserve-3d` on every ancestor element in the chain between the 3D-transformed element and the viewport. Any ancestor with `overflow: hidden`, `opacity` less than 1, `filter`, `will-change`, or `transform` resets the 3D context to flat, collapsing all child 3D transforms.
 
-**The mistake:** Picking a Squarespace template that looks close enough to the desired layout, then spending hours fighting the template's structural assumptions to make it work differently. Squarespace templates have opinionated layouts — some fight custom CSS harder than others.
+**Why it happens:**
+The CSS 3D context inheritance rule is non-obvious. Developers apply `preserve-3d` to the target and expect it to work, but a parent element's default `overflow: hidden` (common on layout containers) silently flattens the 3D.
 
-**Why it happens:** Template selection feels like an early, reversible decision. It isn't — templates determine block behavior, section constraints, and what CSS can and can't override.
+**How to avoid:**
+When a 3D fold animation looks flat: inspect the element and all its ancestors in browser DevTools. Look for `overflow: hidden`, `opacity < 1`, `filter: any value`, `will-change`, or `backdrop-filter` on any ancestor. Remove or restructure these. The `.origami-wrapper` (or whatever contains the 3D scene) and all its ancestors up to the viewport need `transform-style: preserve-3d` or at minimum must avoid the listed flattening properties. Use a dedicated wrapper `<div>` with `perspective` set on it and `transform-style: preserve-3d` on its direct child that gets the GSAP transform applied.
 
 **Warning signs:**
-- CSS overrides require `!important` on more than 20-30% of rules
-- Intended animations or layout changes require removing or hiding elements the template generates automatically
-- The template's mobile behavior conflicts with the custom desktop layout
+- 3D rotation appears as a flat 2D flip rather than a perspective fold
+- The effect works in an isolated CodePen but not in the actual site layout
+- Adding `overflow: hidden` to a layout container breaks the effect
 
-**Prevention strategy:** Choose the template by testing it with custom CSS injected, not by eyeballing the demo. For a portfolio with origami fold transitions, expressive typography, and a distinctive grid — test the template with a rough version of the custom CSS before committing. Squarespace's "Blank" or minimal templates (e.g. Brine family, Five, Horizon) offer the fewest layout constraints. Identify the template decision as a Phase 1 milestone gate.
-
-**Phase:** Technical setup / template selection (before any content entry)
+**Phase to address:** Phase 8 (Origami Fold Transitions — REQ-Anim01). Test the isolated effect before integrating into the full page layout.
 
 ---
 
-### P3.2 — CSS injection that breaks on Squarespace updates
+### P-GSAP5 — iOS Safari: 3D Transforms Flicker, Flash White, or Disappear
 
-**The mistake:** Custom CSS targets Squarespace's internal class names (e.g. `.sqs-block`, `.sqs-layout`) or relies on DOM structure that Squarespace can change with platform updates. The site breaks silently after an update.
+**What goes wrong:**
+CSS 3D transforms with `rotateX()` or `rotateY()` on iOS Safari (particularly on older iPhones and iPads) cause the element to: flash white during animation, disappear entirely at certain rotation angles, show visible rendering artifacts (flickering, ghosting), or simply not animate smoothly. This is a known GPU compositing issue on iOS WebKit, not a code error.
 
-**Why it happens:** Squarespace doesn't expose stable CSS hook points by default. Developers reach for whatever selector works at the time.
+**Why it happens:**
+iOS Safari uses a separate GPU compositing path for 3D-transformed elements. When a large element (a full-page fold) is composited, the GPU layer creation can cause the existing content to temporarily disappear. Safari also applies a back-face visibility culling that can make elements invisible at exactly 90 degrees of rotation (the midpoint of a flip).
+
+**How to avoid:**
+Apply `backface-visibility: hidden` to elements being rotated in 3D — this prevents the invisible back face from showing but also prevents the white-flash on some devices. Add `-webkit-backface-visibility: hidden` for Safari. For the fold effect specifically: instead of rotating a single element from 0 to 180 degrees (which passes through 90-degree invisibility), use two panels — a "front" and a "back" — each rotating from 0 to 90 and from -90 to 0 respectively, with backface-visibility hidden on each. This simulates a true 3D card flip without passing through the problematic 90-degree angle on a single element.
+
+Test on actual iOS Safari (real device or BrowserStack). Desktop browser resize is not a substitute. Safari's rendering engine on iOS differs from Safari on macOS.
 
 **Warning signs:**
-- CSS rules select by Squarespace-internal class names beginning with `sqs-` without a wrapper custom class
-- No custom class names or data attributes applied via HTML blocks or Custom CSS hooks
-- The site has never been tested after a Squarespace platform update
+- White flash at the start or end of a rotation animation
+- Element disappears at mid-animation point
+- Animation that looks correct in Chrome mobile emulation but broken on iPhone Safari
+- Jank or dropped frames visible during the fold transition on iPhone
 
-**Prevention strategy:** Use custom class names applied through Squarespace's Custom CSS field or via HTML blocks wherever possible. When you must target `sqs-` classes, document them explicitly with a comment noting they may break on platform updates. Scope CSS with a site-specific wrapper class applied to the body (this can be done via Code Injection in the header). Review Squarespace's changelog or community forum after major platform updates.
-
-**Phase:** CSS implementation (throughout build)
+**Phase to address:** Phase 8 (Origami Fold Transitions — REQ-Anim04). Requires real-device iOS Safari testing. Flag this as a mandatory pre-completion test.
 
 ---
 
-### P3.3 — JavaScript injection that loads before the DOM is ready
+### P-HTML1 — Nav/Footer Copy-Paste Drift Across Pages
 
-**The mistake:** JavaScript is injected via Squarespace's header Code Injection, runs before the page content is parsed, and throws reference errors because the target elements don't exist yet.
+**What goes wrong:**
+You have 10 HTML pages. Each has a copied `<nav>` and `<footer>` block. You update the nav — add a link, fix a typo, change a label. You update it on the home page. You forget to update it on the about page, three project pages, and the writing page. Now navigation is inconsistent. Some pages have the old nav, some have the new one. Visitors notice. The site feels broken or unmaintained.
 
-**Why it happens:** The header is the most commonly mentioned injection point. Developers assume it works like a `<script defer>` — it doesn't unless explicitly deferred.
+**Why it happens:**
+Raw HTML has no component system. There is no shared nav file. Every change to a shared element must be made manually in every file. With 10 pages, even a single nav change requires 10 identical edits. One will be missed.
+
+**How to avoid:**
+Two strategies, in order of preference:
+
+1. **Use JavaScript to inject nav/footer.** Write `nav.html` and `footer.html` as standalone HTML fragment files. In every page, add a placeholder `<div id="nav-placeholder"></div>` and a `<script>` that fetches and injects the fragment. This requires a local server to work during development (fetch() doesn't work on file:// URLs), but GitHub Pages serves files via HTTP so it works on the live site.
+
+2. **If JavaScript injection feels too complex:** Accept the copy-paste pattern but create a formal checklist. Every time nav or footer is changed, the checklist lists every HTML file that must be updated. Never commit a nav/footer change without verifying all files.
+
+Option 1 is strongly recommended. The 3rd time you forget to update the footer on one page, you will wish you had set this up in Phase 1.
 
 **Warning signs:**
-- JavaScript errors appear in the browser console on first load
-- Animations trigger inconsistently — sometimes work, sometimes don't
-- Code works fine in isolation but fails on the live site
+- Nav differs between any two pages (different items, different active states, different links)
+- Footer on a project page has an outdated email address
+- "Earlier Work" appears in nav on some pages but not others
 
-**Prevention strategy:** Always inject JavaScript either in the footer Code Injection (which executes after DOM parsing) or wrap header-injected scripts in a `DOMContentLoaded` event listener. For GSAP-based origami transitions specifically: load GSAP from CDN in the header (so it's available early), but initialize all ScrollTrigger or transition logic inside a `DOMContentLoaded` or `window.load` listener. Test on multiple page types — Squarespace's page lifecycle varies between collection pages, index pages, and standalone pages.
-
-**Phase:** JavaScript implementation (origami transitions)
+**Phase to address:** Phase 1 (Foundation — REQ-F02). Decide on the injection vs. copy-paste strategy before creating any pages.
 
 ---
 
-### P3.4 — GSAP animations that degrade poorly on mobile
+### P-HTML2 — `<title>` and `<meta>` Tags Forgotten on New Pages
 
-**The mistake:** Origami fold transitions built with GSAP and CSS 3D transforms are visually impressive on desktop but janky, broken, or performance-killing on mobile. The site feels unfinished on phone screens — which is where many recruiters do a first pass.
+**What goes wrong:**
+You copy the base HTML template to create a new page. You forget to update the `<title>` tag, the `<meta name="description">` content, or both. Result: every page shows "Origami Games | Home" in the browser tab regardless of which page you're on. Browser history and bookmarks show confusing titles. Sharing the URL on LinkedIn or Discord shows the wrong preview description.
 
-**Why it happens:** 3D CSS transforms and GSAP timeline animations are GPU-accelerated but still depend on the device's rendering capability. Mobile GPUs handle complex 3D transforms poorly, and Squarespace's mobile experience is already more constrained.
+**Why it happens:**
+The `<title>` and `<meta>` tags are at the top of the `<head>` block and are not visible in the viewport. When creating a new page, developers focus on the visible body content and forget the invisible metadata.
+
+**How to avoid:**
+In the base template, mark the title and description with a clear `<!-- UPDATE THIS -->` comment. Add the title and description as the first two items on the "new page checklist" (a checklist you write once and use every time you create an HTML file). Verify page titles across all pages before any URL is shared publicly.
 
 **Warning signs:**
-- Transitions stutter on any iOS Safari test
-- The animation triggers "paint" or "layout" in Chrome DevTools Performance panel on mobile
-- No conditional logic to reduce or disable animations below a certain viewport width or `prefers-reduced-motion` query
+- Multiple browser tabs showing identical page titles
+- Browser back button showing unhelpful history entries like "Origami Games | Home" for a project page
+- LinkedIn/Slack unfurl previews showing wrong descriptions
 
-**Prevention strategy:** Build animations mobile-first or with an explicit mobile fallback. Use `@media (max-width: ...)` in CSS to disable 3D transforms below tablet width, replacing them with simpler opacity/scale fades. In GSAP, use a `matchMedia()` context to conditionally apply the full origami animation only on wider viewports. Always implement `prefers-reduced-motion` — both as a legal accessibility consideration and because it signals craft.
-
-**Phase:** Animation implementation (origami transitions phase)
+**Phase to address:** Phase 1 (Foundation — REQ-F08, REQ-X06). Add explicit `<!-- UPDATE THIS -->` markers in the base template.
 
 ---
 
-### P3.5 — Over-engineering custom code that the owner can't maintain
+## Technical Debt Patterns
 
-**The mistake:** The CSS/JS implementation becomes so complex — nested CSS custom properties, GSAP timelines with multiple plugins, JavaScript classes — that the site owner (who has limited web coding experience) cannot debug or modify it. The site becomes abandoned or broken when something inevitably needs updating.
-
-**Why it happens:** The developer solves the problem well for now but doesn't consider the handoff. Elegant engineering can be a maintainability liability.
-
-**Warning signs:**
-- More than one JavaScript file injected via different Squarespace Code Injection points
-- CSS requires understanding of cascade specificity to modify without breaking other rules
-- No comments explaining what any block of code does or how to change a value
-
-**Prevention strategy:** Treat the code injection as a handoff document. Write all custom CSS and JavaScript with the site owner as the primary reader. Use CSS custom properties (variables) for every value the owner might want to change — colors, timing, font sizes, spacing. Comment every non-obvious block. Keep GSAP usage to the simplest effective animation. Write a short "How to update X" note for every custom component, either in comments or in a separate plain-language doc.
-
-**Phase:** Throughout build; enforce at every code review point
+| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
+|----------|-------------------|----------------|-----------------|
+| Hardcode animation values in JS instead of CSS custom properties | Faster to write initially | Every timing or easing change requires editing JS, not CSS; owner cannot adjust without JS knowledge | Never — REQ-Anim06 requires CSS custom properties explicitly |
+| Copy-paste full nav/footer HTML into every page | No JS fetch complexity, works on file:// | Every nav change requires editing all 10 pages; drift is inevitable by page 4 | Only if JS injection is confirmed too difficult; document the update checklist |
+| Use `../` relative paths instead of root-relative `/` | Intuitive to write | Breaks silently when any file moves; harder to copy-paste between pages | Never — root-relative paths have no meaningful downside with a local server |
+| Skip `width` and `height` attributes on `<img>` tags | Less HTML to write | Page layout shifts as images load; ScrollTrigger miscalculates positions | Never — always set image dimensions; use actual pixel values or aspect-ratio CSS |
+| No custom `404.html` page | One less file to create | Dead-end experience for any broken link visitor | Never — a one-time 15-minute task |
+| Inline all CSS in `<style>` blocks per page | No separate file management | Can't share styles between pages; making a global change requires editing every file | Never — use a shared `css/main.css` from day one |
+| `git add .` for every commit | Faster staging | Risk of accidentally committing CNAME modification, OS cache files (.DS_Store), or sensitive content | Use sparingly; always check `git status` before committing |
 
 ---
 
-## Domain 4: Work Presentation
+## Integration Gotchas
 
-### P4.1 — Prototypes presented without design context
-
-**The mistake:** A playable prototype or demo is embedded or linked without explaining what it's demonstrating. Visitors play it, don't understand what they're supposed to notice, and move on. The prototype becomes a curiosity rather than evidence of design intent.
-
-**Why it happens:** Designers think "showing" is self-explanatory. It usually isn't outside the context of the design conversation that produced it.
-
-**Warning signs:**
-- Prototype links are labeled "Play the Demo" with no surrounding text
-- No explanation of what mechanic or theme the prototype was built to test
-- The prototype is the centerpiece of the project page rather than supporting evidence
-
-**Prevention strategy:** Every prototype needs a brief (2-4 sentences) before the embed: what design question it was built to answer, what to notice while playing, what was discovered. After the prototype, add an outcome note — did it work? What changed as a result? Prototypes should appear only when they add information a screenshot can't convey.
-
-**Phase:** Content creation / project page template
+| Integration | Common Mistake | Correct Approach |
+|-------------|----------------|------------------|
+| GSAP CDN (jsDelivr) | Loading with `async` or `defer` — GSAP may not be available when dependent scripts run | Load GSAP `<script>` tags without `async`/`defer` in `<head>`; put initialization code in `DOMContentLoaded` or at bottom of `<body>` |
+| GSAP ScrollTrigger | Forgetting to call `gsap.registerPlugin(ScrollTrigger)` before using it | Add `gsap.registerPlugin(ScrollTrigger)` as the first line after GSAP loads, before any `ScrollTrigger.create()` calls |
+| GitHub Pages custom domain | Configuring DNS before creating the `CNAME` file in the repo | Create `CNAME` file first, push it, then configure DNS; GitHub Pages reads the file to know which domain to accept |
+| GitHub Pages + Let's Encrypt HTTPS | Making additional DNS changes while waiting for certificate provisioning | Configure DNS once, correctly, then wait up to 24 hours; do not make changes during the provisioning window |
+| External embeds (itch.io iframes) | Embedding without `allow` attribute for fullscreen or gamepad APIs | Check itch.io embed code for required `allow` attributes; test the embed on the live GitHub Pages URL, not localhost (some cross-origin restrictions differ) |
+| PDF downloads | Linking to a PDF without a download attribute | Use `<a href="/documents/design-brief.pdf" download>` for download intent; provide a descriptive `download` attribute filename |
 
 ---
 
-### P4.2 — Writing samples presented as downloadable PDFs with no preview
+## Performance Traps
 
-**The mistake:** Narrative writing samples — dialogue scripts, lore documents, design briefs — are only accessible as PDF downloads. Visitors have to commit to a download to see the quality of the work. Most won't.
-
-**Why it happens:** PDFs are easy to upload. Squarespace's file storage makes them the path of least resistance.
-
-**Warning signs:**
-- The Writing section consists entirely of PDF download links
-- No excerpt, pull quote, or inline display of any writing content
-- PDF filenames are auto-generated or undescriptive
-
-**Prevention strategy:** For every writing sample, display at least an excerpt (2-4 paragraphs) inline on the page or in a styled text block. Use the excerpt to demonstrate voice, craft, and purpose — then offer the full document as a download for those who want more. Label downloads descriptively (e.g., "Download: Narrative Design Brief — The Unraveling"). For longer documents, a summary paragraph explaining the document's purpose is required before the download link.
-
-**Phase:** Writing section build / content entry
+| Trap | Symptoms | Prevention | When It Breaks |
+|------|----------|------------|----------------|
+| Uncompressed hero images (3–10 MB per page) | Pages load slowly on mobile data; visible layout shift as image loads; Google PageSpeed score degraded | Compress all images to under 200 KB for hero images, under 100 KB for thumbnails; use WebP format with JPEG fallback | Immediately — even one 3 MB image makes a portfolio feel slow |
+| GSAP animating `width`, `height`, `top`, `left` properties | Visible jank, low FPS during animation | Only animate `transform` and `opacity` — these are GPU-composited; never animate layout properties | Any device; worse on mobile |
+| Animating too many elements simultaneously with ScrollTrigger | Scroll feels sluggish on mobile | Limit concurrent animations; simplify or remove animations on mobile viewports via `matchMedia` | Below ~768px viewport, older phones |
+| No `will-change: transform` on animated elements | Minor jank at animation start as GPU layer is created mid-animation | Add `will-change: transform` to elements that will be GSAP-animated; remove it after animation completes to avoid memory overhead | Mostly affects mobile; subtle on desktop |
+| Loading full GSAP bundle when only core is needed | Slightly larger download | Load only the plugins used: `gsap.min.js` + `ScrollTrigger.min.js` — do not load the full GSAP "all" bundle | Not critical at this scale, but good hygiene |
 
 ---
 
-### P4.3 — No visible throughline connecting projects to design philosophy
+## Security Notes
 
-**The mistake:** The project case studies are good individually but don't add up to anything. Visitors who read two or three case studies can't articulate what this designer believes or what makes them distinctive.
+This is a static site with no server-side code, user accounts, forms, or database. The security surface is very small. The relevant items:
 
-**Why it happens:** The throughline exists in the designer's head but was never explicitly translated into the way each project is framed.
-
-**Warning signs:**
-- Each case study could be from a different designer — the voice and framing don't connect
-- The design philosophy statement on the home page has no echo in individual project pages
-- No consistent framing device across case studies (e.g., every case study connects to player well-being or meaning, or none do)
-
-**Prevention strategy:** Define a framing device for the case study template that explicitly ties each project back to the throughline. For this project: each case study should include a brief (1-3 sentences) that explains how this specific game relates to the designer's core interest in player well-being, pressure, and meaning. It doesn't have to be a separate section — it can be woven into the hook. But it must be present and genuine, not formulaic.
-
-**Phase:** Content strategy / case study writing
+| Item | Risk | Prevention |
+|------|------|------------|
+| Contact email displayed in plain text | Email scraped by spam harvesters | Acceptable tradeoff for a portfolio; consider `mailto:` link obfuscation if spam becomes an issue |
+| External JS from CDN (jsDelivr) | CDN compromise would inject malicious code | Use Subresource Integrity (SRI) hash on CDN script tags — jsDelivr provides these; add `integrity` and `crossorigin` attributes to the `<script>` tags |
+| Sensitive files accidentally committed | NDA project content, personal documents pushed to public repo | Check `.gitignore` before first commit; never store client files in the repo; use a separate private repo for NDA work |
 
 ---
 
-### P4.4 — Treating shipped games differently from "designed" games
+## UX Pitfalls
 
-**The mistake:** Shipped games are shown as finished products (screenshots, store link) while unshipped design work is buried in case studies. This inverts the portfolio's value — for a narrative/experience designer, the design thinking is the product, not the shipping.
-
-**Why it happens:** Shipping feels more legitimate. Designers undervalue their own process documentation.
-
-**Warning signs:**
-- Shipped game pages are image-heavy with little text
-- Design brief / case study pages have no images or visual artifacts
-- The site implicitly treats "shipped" as the credential rather than "designed well"
-
-**Prevention strategy:** Every project page — shipped or not — should foreground design thinking. For shipped games, this means going beyond screenshots and a store link: what was the design problem, what was solved, what would you change? For unshipped design work, use visual artifacts from the process (wireframes, diagrams, mood boards) to make the thinking tangible. Equalize the depth across project types.
-
-**Phase:** Project page template / content creation
+| Pitfall | User Impact | Better Approach |
+|---------|-------------|-----------------|
+| Animations that block content visibility | Visitors wait for an animation to complete before seeing content; they bounce | REQ-Anim05 is explicit: content must be readable with JS disabled; animations are progressive enhancement only |
+| No skip link for screen readers | Keyboard and screen reader users must tab through the entire nav on every page | Add `<a href="#main-content" class="skip-link">Skip to main content</a>` as first element in `<body>`; style it visible on focus |
+| 3D fold transition on every page navigation | Navigation feels slow and theatrical; returning users find it annoying | Apply origami transitions only on key navigational moments (entering a project); use a faster or no transition for back-navigation |
+| `target="_blank"` links without `rel="noopener"` | Minor security issue (opener access) and poor practice | All external links should use `target="_blank" rel="noopener noreferrer"` |
+| Resume PDF opens in browser instead of downloading | Visitors lose their place on the page; some browsers struggle with large PDFs | Use `<a href="/resume.pdf" download="Rebecca-Resume.pdf">` to force download with a descriptive filename |
 
 ---
 
-## Domain 5: Visual Design and Brand Expression
+## "Looks Done But Isn't" Checklist
 
-### P5.1 — Animation as decoration rather than brand expression
+These items consistently appear complete but have a hidden gap that surfaces later.
 
-**The mistake:** The origami fold transitions are implemented because they look impressive, but they're not connected to the site's meaning or the designer's identity. The animation is a style choice rather than a statement.
-
-**Why it happens:** Origami transitions are technically interesting to build. The visual wow factor can become the goal rather than the communication.
-
-**Warning signs:**
-- Transitions occur on every interaction regardless of semantic appropriateness
-- The origami metaphor is never mentioned or explained anywhere on the site
-- The animation slows navigation and creates friction without adding meaning
-
-**Prevention strategy:** Make the origami transition a deliberate brand element with meaning, not a decoration. Consider a brief note on the About page or in the site's visual language that connects origami (transformation, layering, precision, the reveal beneath the fold) to the designer's philosophy. Use the animation selectively — on key navigational moments (entering a project, returning home) rather than every scroll event. If the animation isn't earning its friction cost, it should be simpler or removed.
-
-**Phase:** Design/brand definition (before animation implementation)
+- [ ] **HTTPS active:** GitHub Pages shows the custom domain as configured, but "Enforce HTTPS" is not yet checked — verify the checkbox is enabled, not just that the domain is listed
+- [ ] **All internal links tested:** Every `href` in nav, footer, project cards, and cross-links resolves to a real page — open each in an incognito window and check the URL in the browser address bar
+- [ ] **Images load on all pages:** Images that load on the home page may 404 on project pages due to path case or relative path issues — check every image on every page
+- [ ] **GSAP registers ScrollTrigger:** If `gsap.registerPlugin(ScrollTrigger)` is missing, GSAP loads silently but ScrollTrigger has no effect — open DevTools console and confirm no warnings on every page that uses ScrollTrigger
+- [ ] **`prefers-reduced-motion` is actually respected:** Add a temporary CSS rule that colors the background red when reduced-motion is active; enable reduced-motion in OS settings and verify the background turns red; remove the debug rule
+- [ ] **Mobile nav works on iPhone Safari specifically:** Hamburger menu, tap targets, and any CSS hover states converted to tap states — test on real device or BrowserStack, not just Chrome DevTools device emulation
+- [ ] **Resume PDF downloads correctly:** Click the PDF download link from the live site URL (not localhost) — some browsers handle PDF downloads differently depending on server headers; GitHub Pages serves correct `Content-Type` but verify it downloads rather than opening inline
+- [ ] **Custom `404.html` is present and styled:** Navigate to `yourdomain.com/this-page-does-not-exist` — confirm your branded 404 page appears with navigation back to the site
+- [ ] **Footer email link is correct:** `<a href="mailto:correct@email.com">` — the link text and the href email address should match; verify both
+- [ ] **Page titles are unique across all pages:** Open all pages and look at the browser tab titles — each should be distinct and descriptive
 
 ---
 
-### P5.2 — "Expressive and personal" that becomes illegible
+## Recovery Strategies
 
-**The mistake:** Pursuing an expressive visual design results in typography, color, or layout choices that make the content hard to read. The portfolio looks distinctive but visitors can't absorb the work.
-
-**Why it happens:** Designers who value expressiveness over accessibility make decisions that look right in isolation but fail in context (e.g., light text on light backgrounds, decorative fonts at body size, layout that prioritizes visual tension over reading flow).
-
-**Warning signs:**
-- Body text uses a display or decorative font at any size
-- Contrast ratios on text fall below WCAG AA standards (4.5:1 for body text)
-- Layout choices cause confusion about where to read next
-- The "expressive" elements compete with the case study content for attention
-
-**Prevention strategy:** Separate expressive decisions (brand colors, display type, signature interactions) from legibility decisions (body type, content layout, contrast). Treat case study content as sacred — it must be presented in conditions that maximize reading comprehension. Use the visual distinctiveness for framing elements (headers, transitions, hero sections) and pull back to clarity for case study bodies. Run contrast ratios before any color palette is finalized.
-
-**Phase:** Visual design / type and color system definition
+| Pitfall | Recovery Cost | Recovery Steps |
+|---------|---------------|----------------|
+| File path case sensitivity — broken images/styles on live site | LOW | Rename files to lowercase in repo; update all references; push; verify on live site. Takes 15–60 minutes. |
+| CNAME file lost — custom domain broken | LOW | Recreate `CNAME` file with domain name, commit, push; wait for GitHub Pages to redetect (5–10 minutes) |
+| HTTPS certificate lost — site shows insecure | MEDIUM | Remove and re-add the custom domain in GitHub Pages settings; wait up to 24 hours for Let's Encrypt to provision; do not make DNS changes during this window |
+| Nav/footer drift across pages | MEDIUM | If early: switch to JS injection pattern now. If late: do a full audit of every HTML file, update manually, document all files in a checklist for future |
+| ScrollTrigger calculates wrong positions | LOW | Add `window.addEventListener('load', ...)` wrapper around ScrollTrigger init (instead of `DOMContentLoaded`); add `width`/`height` to all images |
+| iOS Safari 3D transform flicker/flash | MEDIUM | Add `backface-visibility: hidden; -webkit-backface-visibility: hidden` to animated elements; if still broken, refactor to two-panel flip approach; allocate 2–4 hours for iOS-specific testing |
+| GSAP animations not targeting elements correctly | LOW | Add null checks before every `gsap.to()` call; check console for null reference errors; move page-specific GSAP code from shared JS to page-specific `<script>` blocks |
 
 ---
 
-## Summary Table
+## Pitfall-to-Phase Mapping
 
-| ID | Pitfall | Domain | Phase |
-|----|---------|--------|-------|
-| P1.1 | Leading with work before identity | Content strategy | IA / home page |
-| P1.2 | Treating all work as equally important | Content strategy | IA / content inventory |
-| P1.3 | Case studies that describe, not analyze | Content strategy | Content creation |
-| P1.4 | Failing to serve multiple audiences | Content strategy | IA + About page |
-| P1.5 | Burying / mishandling school work | Content strategy | Content creation |
-| P2.1 | Navigation labels that require explanation | UX | IA |
-| P2.2 | Project pages with no reading path | UX | Project page template |
-| P2.3 | Contact / collaboration too hard to find | UX | Site structure |
-| P3.1 | Template that fights the design vision | Squarespace | Technical setup |
-| P3.2 | CSS that breaks on platform updates | Squarespace | CSS implementation |
-| P3.3 | JavaScript injected before DOM ready | Squarespace / JS | JS implementation |
-| P3.4 | GSAP animations degrade on mobile | Squarespace / JS | Animation phase |
-| P3.5 | Code too complex for owner to maintain | Squarespace / JS | Throughout build |
-| P4.1 | Prototypes without design context | Work presentation | Content creation |
-| P4.2 | Writing samples as unpreviewable PDFs | Work presentation | Writing section build |
-| P4.3 | No throughline connecting projects | Work presentation | Content strategy |
-| P4.4 | Shipped vs. designed treated differently | Work presentation | Project page template |
-| P5.1 | Animation as decoration, not brand | Visual design | Design/brand definition |
-| P5.2 | Expressive design that's illegible | Visual design | Visual design phase |
+| Pitfall | Prevention Phase | Verification |
+|---------|------------------|--------------|
+| File path case sensitivity (P-GH1) | Phase 1 — establish naming convention | Run `git ls-files` and verify no uppercase letters in any filename; spot-check 3 paths on live site |
+| CNAME conflict (P-GH2) | Phase 1 — commit CNAME immediately | `git log --all -- CNAME` confirms it exists and has not been modified since initial commit |
+| HTTPS not provisioned (P-GH3) | Phase 1 — allow 24-hour window | Navigate to `https://yourdomain.com` — no certificate warning; `Enforce HTTPS` checkbox enabled in GitHub Pages settings |
+| 404 routing / missing files (P-GH4) | Phase 1 — path structure; Phase 10 — full link audit | Create custom `404.html`; run link checker before any public URL sharing |
+| Relative path deep-nesting (P-GH5) | Phase 1 — root-relative paths in base template | Open a project sub-page; confirm all CSS, JS, images, and nav links load correctly |
+| GSAP CDN load order (P-GSAP1) | Phase 1 — base template script order | Open DevTools console on home page; no `gsap is not defined` errors |
+| ScrollTrigger position miscalculation (P-GSAP2) | Phase 8 — animation implementation | Clear browser cache, hard reload; verify scroll animations trigger at correct scroll positions |
+| GSAP null reference errors on wrong pages (P-GSAP3) | Phase 8 — animation JS organization | Open DevTools console on every page type; no null reference errors |
+| CSS 3D context flattened by ancestor (P-GSAP4) | Phase 8 — origami fold implementation | Build fold in isolation first; then integrate into page layout; verify effect is still 3D |
+| iOS Safari 3D flicker (P-GSAP5) | Phase 8 — MANDATORY real device test | Test on actual iPhone (real device or BrowserStack); not desktop Chrome DevTools |
+| Nav/footer copy-paste drift (P-HTML1) | Phase 1 — choose injection strategy | After any nav change: open every HTML file, confirm nav matches; or use JS injection to eliminate the problem |
+| Missing `<title>`/`<meta>` on new pages (P-HTML2) | Every phase that adds pages | Open each page; check browser tab title; verify it's unique and accurate |
 
 ---
 
-*Research complete. 19 pitfalls documented across 5 domains. All prevention strategies are specific to this project's platform (Squarespace), audience (studios/collaborators/clients), and design philosophy (player well-being and meaning throughline).*
+## Sources
+
+- GitHub Pages official documentation — custom domain setup, CNAME behavior, HTTPS provisioning, file serving behavior (confirmed against behavior known through August 2025; HIGH confidence)
+- GSAP official documentation (gsap.com) — ScrollTrigger API, `registerPlugin`, `matchMedia`, `refresh()` behavior (HIGH confidence)
+- CSS 3D transforms — MDN Web Docs — `transform-style`, `preserve-3d`, `backface-visibility`, stacking context flattening (HIGH confidence)
+- iOS WebKit rendering behavior — known GPU compositing issues with CSS 3D transforms on iOS Safari — documented in WebKit bug tracker and community reports through 2025 (MEDIUM confidence — specific device behavior varies; real device testing required)
+- Static multi-page HTML maintenance patterns — community consensus from web development discourse; copy-paste drift and path case issues are widely documented (HIGH confidence — these are fundamental to how static HTML works)
+
+---
+
+*Pitfalls research for: Static HTML portfolio — GitHub Pages + GSAP 3 + CSS 3D transforms*
+*Researched: 2026-02-24*
+*Replaces: Previous PITFALLS.md (Squarespace-focused — platform changed to GitHub Pages on 2026-02-24)*
