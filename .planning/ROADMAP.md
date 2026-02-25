@@ -2,7 +2,7 @@
 
 ## Overview
 
-Ten phases take the Origami Games portfolio from an empty GitHub Pages repository to a
+Ten phases take the Origami Games portfolio from an empty repository to a
 linkable, professional site that communicates identity and design philosophy before any case
 study is read. The build order is strict: infrastructure and CSS tokens before any content;
 philosophy statement before any page copy; first case study template validated before
@@ -10,8 +10,8 @@ replication; GSAP fold transitions applied only after all content pages are stab
 site's job at v1 is to not embarrass itself when someone clicks through from a job
 application — not to be comprehensive.
 
-Platform: GitHub Pages (raw HTML/CSS/JS, no build tools, no static site generator). Pushing
-to `main` deploys automatically. GSAP 3 + ScrollTrigger via jsDelivr CDN.
+Platform: Netlify (auto-deploys from GitHub `main` branch — raw HTML/CSS/JS, no build tools,
+no static site generator). GSAP 3 + ScrollTrigger via jsDelivr CDN.
 
 ---
 
@@ -21,7 +21,7 @@ to `main` deploys automatically. GSAP 3 + ScrollTrigger via jsDelivr CDN.
 - Integer phases (1–10): Planned v1 milestone work
 - Decimal phases (e.g., 2.1): Urgent insertions created via `/gsd:insert-phase`
 
-- [ ] **Phase 1: Foundation Scaffold** - GitHub Pages configured, CSS tokens defined, JS fetch includes, GSAP CDN loaded, placeholder pages at correct URLs, HTTPS active
+- [ ] **Phase 1: Foundation Scaffold** - Netlify configured, CSS tokens defined, JS fetch includes, GSAP CDN loaded, placeholder pages at correct URLs, HTTPS active
 - [ ] **Phase 2: Home / Landing** - Philosophy statement above fold, featured project cards, footer with email and nav echo — visual and tonal register established
 - [ ] **Phase 3: Work Index + First Case Study** - `/work/` URL locked, one complete 8-section case study built and validated as the template for all subsequent project pages
 - [ ] **Phase 4: Additional Work Content** - 2–3 total case studies from the validated Phase 3 template; home page cards updated to real projects
@@ -37,7 +37,7 @@ to `main` deploys automatically. GSAP 3 + ScrollTrigger via jsDelivr CDN.
 ## Phase Details
 
 ### Phase 1: Foundation Scaffold
-**Goal**: All infrastructure that every subsequent phase depends on is in place — GitHub Pages
+**Goal**: All infrastructure that every subsequent phase depends on is in place — Netlify
 serving the custom domain over HTTPS, correct URL structure locked in before any content is
 created, CSS tokens defined, nav injected from a single source of truth, GSAP available in
 the browser console, and placeholder pages at every destination so no URL ever 404s.
@@ -48,13 +48,19 @@ the browser console, and placeholder pages at every destination so no URL ever 4
 REQ-F09, REQ-N01, REQ-N03
 
 **Success Criteria** (what must be TRUE):
-  1. The site loads at the custom domain with HTTPS active (padlock visible) and shows "Origami Games" or the designer's name in the browser tab — no GitHub Pages default page
+  1. The site loads at the custom domain with HTTPS active (padlock visible) and shows "Origami Games" or the designer's name in the browser tab — no Netlify default page
   2. All five nav destinations (Home, Work, Writing, About, and the Contact anchor) are reachable — clicking each nav item loads a page that exists, even if it only has a skeleton structure
   3. Opening browser DevTools on any page shows GSAP and ScrollTrigger loaded with no console errors, and `typeof gsap` returns `'object'`
   4. The CSS tokens file (`/css/tokens.css`) is loaded on every page — changing `--color-accent` in that file visibly changes the accent color across the whole site after one deploy
   5. The nav and footer are maintained in `_includes/` and injected by `nav.js` — editing `_includes/nav.html` once updates every page
 
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Repo directory structure and CSS design token system
+- [ ] 01-02-PLAN.md — HTML skeleton pages and _includes/ nav/footer markup
+- [ ] 01-03-PLAN.md — JS fetch-inject nav + GSAP init stub + local browser verification
+- [ ] 01-04-PLAN.md — Netlify deploy, custom domain DNS, and HTTPS verification
 
 ---
 
@@ -245,7 +251,7 @@ embarrassing first impression.
   2. Reading through every published page finds no placeholder text, empty sections, or "coming soon" notices
   3. Clicking each external link (itch.io, Steam, LinkedIn, resume PDF) opens the correct destination and the link is live
   4. The contact pathway is tested end-to-end: a form submission or email link is confirmed working and the message is received before launch
-  5. The site loads at the custom domain with HTTPS active (padlock in address bar) and "Enforce HTTPS" is confirmed enabled in GitHub Pages settings
+  5. The site loads at the custom domain with HTTPS active (padlock in address bar) and certificate is confirmed active in Netlify domain management
 
 **Plans**: TBD
 
@@ -258,7 +264,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation Scaffold | 0/TBD | Not started | - |
+| 1. Foundation Scaffold | 0/4 | In progress | - |
 | 2. Home / Landing | 0/TBD | Not started | - |
 | 3. Work Index + First Case Study | 0/TBD | Not started | - |
 | 4. Additional Work Content | 0/TBD | Not started | - |
@@ -365,7 +371,8 @@ REQ-N04 appears in both Phase 2 and Phase 9 as first delivery and final verifica
 
 ---
 
-*Roadmap created: 2026-02-24 (replaced Squarespace roadmap with GitHub Pages roadmap)*
-*Platform: GitHub Pages — raw HTML/CSS/JS, no build tools, GSAP via CDN*
+*Roadmap created: 2026-02-24 (replaced Squarespace roadmap with static site roadmap)*
+*Platform corrected: Netlify (GitHub repo → Netlify auto-deploy) — updated 2026-02-25*
+*Platform: Netlify — raw HTML/CSS/JS, no build tools, GSAP via CDN*
 *Depth: Comprehensive (10 phases)*
 *Coverage: 36 v1 requirements, 100% mapped*
