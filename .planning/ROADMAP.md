@@ -58,8 +58,8 @@ REQ-F09, REQ-N01, REQ-N03
 
 Plans:
 - [x] 01-01-PLAN.md — Repo directory structure and CSS design token system
-- [ ] 01-02-PLAN.md — HTML skeleton pages and _includes/ nav/footer markup
-- [ ] 01-03-PLAN.md — JS fetch-inject nav + GSAP init stub + local browser verification
+- [x] 01-02-PLAN.md — HTML skeleton pages and _includes/ nav/footer markup
+- [x] 01-03-PLAN.md — JS fetch-inject nav + GSAP init stub + local browser verification
 - [ ] 01-04-PLAN.md — Netlify deploy, custom domain DNS, and HTTPS verification
 
 ---
@@ -264,7 +264,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation Scaffold | 1/4 | In progress | - |
+| 1. Foundation Scaffold | 3/4 | In progress | - |
 | 2. Home / Landing | 0/TBD | Not started | - |
 | 3. Work Index + First Case Study | 0/TBD | Not started | - |
 | 4. Additional Work Content | 0/TBD | Not started | - |

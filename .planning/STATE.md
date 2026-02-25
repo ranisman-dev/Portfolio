@@ -13,28 +13,28 @@ pressure and meaning — before reading a single case study.
 ## Current Position
 
 Phase: 1 of 10 (Foundation Scaffold)
-Plan: 1 of 4 in current phase
-Status: Executing Phase 1 — plan 01 complete (directory scaffold + CSS tokens)
-Last activity: 2026-02-25 — Executed 01-01-PLAN.md: directory scaffold + CSS token system (2 tasks, 2 commits)
+Plan: 3 of 4 in current phase
+Status: Executing Phase 1 — plan 03 complete (fetch-inject nav.js + GSAP stub + browser verified)
+Last activity: 2026-02-25 — Executed 01-03-PLAN.md: js/nav.js fetch-inject with active state + js/animations.js GSAP stub; human-verified in Live Server (2 tasks, 2 commits)
 
-Progress: [█░░░░░░░░░] 3%
+Progress: [██░░░░░░░░] 8%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 1
-- Average duration: 1 min
-- Total execution time: 0.02 hours
+- Total plans completed: 3
+- Average duration: ~11 min
+- Total execution time: ~0.5 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| Phase 1 | 1 | 1 min | 1 min |
+| Phase 1 | 3 | ~32 min | ~11 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (1 min)
-- Trend: —
+- Last 5 plans: 01-01 (1 min), 01-02 (1 min), 01-03 (~30 min)
+- Trend: Plan 03 longer due to human-verify checkpoint and style iteration
 
 *Updated after each plan completion*
 
@@ -54,6 +54,11 @@ Recent decisions affecting current work:
 - Typography: Montserrat Alternates (display) + Source Code Pro (body/mono) — cozy indie feel
 - core.ignorecase = false — prevents Windows case-insensitivity masking Linux deploy mismatches on Netlify
 - CNAME file treated as read-only — unchanged from original (rebeccaanisman.com)
+- root-relative paths (/css/tokens.css) used on all pages — not relative — ensures sub-pages work correctly
+- earlier-work/index.html exists but is absent from nav/footer includes — hidden until Phase 6 by omission
+- Contact nav link targets /about#contact anchor, not a separate page
+- Type scale ratio: perfect fourth (1.333x) — user preference over major third; applied in Plan 03 browser verification
+- Footer content: centered (text-align + justify-content: center) — user preference applied in Plan 03 verification
 
 ### Pending Todos
 
@@ -67,5 +72,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-25
-Stopped at: Completed 01-01-PLAN.md — directory scaffold and CSS token system. Next: execute 01-02-PLAN.md (HTML skeleton pages and _includes/ nav/footer markup).
+Stopped at: Completed 01-03-PLAN.md — fetch-inject nav.js + animations.js GSAP stub; human-verified in Live Server. Next: execute 01-04-PLAN.md (Netlify deploy, custom domain DNS, HTTPS verification).
 Resume file: None
