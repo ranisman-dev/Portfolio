@@ -21,7 +21,7 @@ no static site generator). GSAP 3 + ScrollTrigger via jsDelivr CDN.
 - Integer phases (1–10): Planned v1 milestone work
 - Decimal phases (e.g., 2.1): Urgent insertions created via `/gsd:insert-phase`
 
-- [ ] **Phase 1: Foundation Scaffold** - Netlify configured, CSS tokens defined, JS fetch includes, GSAP CDN loaded, placeholder pages at correct URLs, HTTPS active
+- [x] **Phase 1: Foundation Scaffold** - Netlify configured, CSS tokens defined, JS fetch includes, GSAP CDN loaded, placeholder pages at correct URLs, HTTPS active
 - [ ] **Phase 2: Home / Landing** - Philosophy statement above fold, featured project cards, footer with email and nav echo — visual and tonal register established
 - [ ] **Phase 3: Work Index + First Case Study** - `/work/` URL locked, one complete 8-section case study built and validated as the template for all subsequent project pages
 - [ ] **Phase 4: Additional Work Content** - 2–3 total case studies from the validated Phase 3 template; home page cards updated to real projects
@@ -60,7 +60,7 @@ Plans:
 - [x] 01-01-PLAN.md — Repo directory structure and CSS design token system
 - [x] 01-02-PLAN.md — HTML skeleton pages and _includes/ nav/footer markup
 - [x] 01-03-PLAN.md — JS fetch-inject nav + GSAP init stub + local browser verification
-- [ ] 01-04-PLAN.md — Netlify deploy, custom domain DNS, and HTTPS verification
+- [x] 01-04-PLAN.md — Netlify deploy, custom domain DNS, and HTTPS verification
 
 ---
 
@@ -264,7 +264,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation Scaffold | 3/4 | In progress | - |
+| 1. Foundation Scaffold | 4/4 | Complete | 2026-02-25 |
 | 2. Home / Landing | 0/TBD | Not started | - |
 | 3. Work Index + First Case Study | 0/TBD | Not started | - |
 | 4. Additional Work Content | 0/TBD | Not started | - |
@@ -294,17 +294,17 @@ every subsequent phase that introduces new CSS or JS.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| REQ-F01 | Phase 1 | Pending |
-| REQ-F02 | Phase 1 | Pending |
-| REQ-F03 | Phase 1 | Pending |
-| REQ-F04 | Phase 1 | Pending |
-| REQ-F05 | Phase 1 | Pending |
-| REQ-F06 | Phase 1 | Pending |
-| REQ-F07 | Phase 1 | Pending |
-| REQ-F08 | Phase 1 | Pending |
-| REQ-F09 | Phase 1 | Pending |
-| REQ-N01 | Phase 1 | Pending |
-| REQ-N03 | Phase 1 | Pending |
+| REQ-F01 | Phase 1 | Complete |
+| REQ-F02 | Phase 1 | Complete |
+| REQ-F03 | Phase 1 | Complete |
+| REQ-F04 | Phase 1 | Complete |
+| REQ-F05 | Phase 1 | Complete |
+| REQ-F06 | Phase 1 | Complete |
+| REQ-F07 | Phase 1 | Complete |
+| REQ-F08 | Phase 1 | Complete |
+| REQ-F09 | Phase 1 | Complete |
+| REQ-N01 | Phase 1 | Complete |
+| REQ-N03 | Phase 1 | Complete |
 | REQ-H01 | Phase 2 | Pending |
 | REQ-H02 | Phase 2 | Pending |
 | REQ-H03 | Phase 2 | Pending |

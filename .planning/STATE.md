@@ -8,21 +8,21 @@ See: .planning/PROJECT.md (updated 2026-02-23)
 designs game systems encouraging players to reflect on their well-being and how they navigate
 pressure and meaning — before reading a single case study.
 
-**Current focus:** Phase 1 — Foundation
+**Current focus:** Phase 1 — Foundation COMPLETE; Phase 2 — Home / Landing is next
 
 ## Current Position
 
-Phase: 1 of 10 (Foundation Scaffold)
-Plan: 3 of 4 in current phase
-Status: Executing Phase 1 — plan 03 complete (fetch-inject nav.js + GSAP stub + browser verified)
-Last activity: 2026-02-25 — Executed 01-03-PLAN.md: js/nav.js fetch-inject with active state + js/animations.js GSAP stub; human-verified in Live Server (2 tasks, 2 commits)
+Phase: 1 of 10 (Foundation Scaffold) — COMPLETE
+Plan: 4 of 4 in current phase — COMPLETE
+Status: Phase 1 complete — all 4 plans executed; Netlify connected, auto-deploy confirmed, custom domain DNS propagating
+Last activity: 2026-02-25 — Executed 01-04-PLAN.md: Netlify connected to GitHub repo, auto-deploy verified on push to main, custom domain rebeccaanisman.com configured, DNS propagating, HTTPS pending propagation
 
-Progress: [██░░░░░░░░] 8%
+Progress: [██░░░░░░░░] 10% (Phase 1 complete — 4/4 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3
+- Total plans completed: 4
 - Average duration: ~11 min
 - Total execution time: ~0.5 hours
 
@@ -30,11 +30,11 @@ Progress: [██░░░░░░░░] 8%
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| Phase 1 | 3 | ~32 min | ~11 min |
+| Phase 1 | 4 | ~52 min | ~13 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (1 min), 01-02 (1 min), 01-03 (~30 min)
-- Trend: Plan 03 longer due to human-verify checkpoint and style iteration
+- Last 5 plans: 01-01 (1 min), 01-02 (1 min), 01-03 (~30 min), 01-04 (~20 min)
+- Trend: Plans 03-04 longer due to human-verify/human-action checkpoints
 
 *Updated after each plan completion*
 
@@ -59,6 +59,9 @@ Recent decisions affecting current work:
 - Contact nav link targets /about#contact anchor, not a separate page
 - Type scale ratio: perfect fourth (1.333x) — user preference over major third; applied in Plan 03 browser verification
 - Footer content: centered (text-align + justify-content: center) — user preference applied in Plan 03 verification
+- Netlify DNS (name server transfer) used over Squarespace CNAME/ALIAS — Squarespace DNS does not support ALIAS/ANAME for apex domain; Netlify DNS is correct solution
+- HTTPS deferred — Let's Encrypt certificate self-provisions after DNS propagation (no manual step; check rebeccaanisman.com within 24h for padlock confirmation)
+- Auto-deploy confirmed: push to main → Netlify redeploy within 60 seconds (verified via test commit + deploy log)
 
 ### Pending Todos
 
@@ -72,5 +75,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-25
-Stopped at: Completed 01-03-PLAN.md — fetch-inject nav.js + animations.js GSAP stub; human-verified in Live Server. Next: execute 01-04-PLAN.md (Netlify deploy, custom domain DNS, HTTPS verification).
+Stopped at: Completed 01-04-PLAN.md — Phase 1 complete. Netlify connected, auto-deploy verified, custom domain DNS propagating, HTTPS pending. Next: execute Phase 2 (Home / Landing) — run /gsd:execute-phase 2 to plan and begin.
 Resume file: None
