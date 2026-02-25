@@ -1,0 +1,105 @@
+/* css/components.css */
+/* Nav, footer, cards, and shared UI components */
+/* Phase 1: structural stubs — visual detail added in Phase 2 */
+/* Depends on tokens.css */
+
+/* ── Site Nav ─────────────────────────────────────── */
+
+.site-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-6);
+  background-color: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-nav);
+}
+
+.site-nav__logo {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.site-nav__list {
+  display: flex;
+  gap: var(--space-6);
+}
+
+.site-nav__link {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--color-text-muted);
+  text-decoration: none;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.site-nav__link:hover,
+.site-nav__link:focus {
+  color: var(--color-accent);
+}
+
+.site-nav__link.is-active,
+.site-nav__link[aria-current="page"] {
+  color: var(--color-text);
+  font-weight: var(--weight-semibold);
+}
+
+/* ── Site Footer ──────────────────────────────────── */
+
+.site-footer {
+  padding: var(--space-12) var(--space-6);
+  border-top: 1px solid var(--color-border);
+  background-color: var(--color-bg-surface);
+}
+
+.site-footer__nav {
+  display: flex;
+  gap: var(--space-6);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-6);
+}
+
+.site-footer__nav a {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.site-footer__nav a:hover {
+  color: var(--color-accent);
+}
+
+.site-footer__contact {
+  display: flex;
+  gap: var(--space-6);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-4);
+}
+
+.site-footer__contact a {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.site-footer__credit {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+/* Mobile nav */
+@media (max-width: 768px) {
+  .site-nav__list {
+    gap: var(--space-4);
+  }
+
+  .site-nav {
+    padding-inline: var(--space-4);
+  }
+}

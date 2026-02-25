@@ -1,0 +1,37 @@
+/* css/layout.css */
+/* Page layout, grid containers */
+/* Depends on tokens.css */
+
+.page-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.page-wrapper > main {
+  flex: 1;
+}
+
+.container {
+  width: 100%;
+  max-width: var(--max-width-content);
+  margin-inline: auto;
+  padding-inline: var(--space-6);
+}
+
+.prose {
+  max-width: var(--max-width-prose);
+}
+
+/* Responsive container padding */
+@media (max-width: 768px) {
+  .container {
+    padding-inline: var(--space-4);
+  }
+}
+
+@media (max-width: 375px) {
+  .container {
+    padding-inline: var(--space-3);
+  }
+}

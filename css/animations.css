@@ -1,0 +1,11 @@
+/* css/animations.css */
+/* Animation-specific CSS */
+/* Phase 1: stub — populated in Phase 8 (Origami Fold Transitions) */
+/* Uses custom properties from tokens.css: --duration-*, --ease-*, --perspective-fold */
+
+/* Phase 8 will add:
+   - .page-transition wrapper classes
+   - 3D fold keyframes using rotationX/Y
+   - prefers-reduced-motion fallbacks
+   - mobile (< 768px) opacity/scale fallback rules
+*/
