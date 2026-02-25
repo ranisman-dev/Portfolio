@@ -1,8 +1,8 @@
 # REQUIREMENTS: Origami Games Portfolio — v1
 
 **Milestone:** v1 — "Just enough to share"
-**Platform:** GitHub Pages — static HTML/CSS/JS, custom domain
-**Last updated:** 2026-02-24 (platform corrected: Squarespace → GitHub Pages)
+**Platform:** Netlify — static HTML/CSS/JS, auto-deploys from GitHub `main`, custom domain
+**Last updated:** 2026-02-25 (platform corrected: GitHub Pages → Netlify; repo is private)
 
 Each requirement is specific and testable — it should be possible to verify pass/fail for every item.
 
@@ -12,7 +12,7 @@ Each requirement is specific and testable — it should be possible to verify pa
 
 | ID | Requirement |
 |----|-------------|
-| REQ-F01 | GitHub Pages repository configured and serving the site at the custom domain |
+| REQ-F01 | Netlify site connected to private GitHub repo and auto-deploying at the custom domain |
 | REQ-F02 | Base HTML template created with shared `<head>`, `<nav>`, and `<footer>` structure — all pages inherit from this |
 | REQ-F03 | CSS custom properties defined globally: primary/accent colors, typography scale, spacing units, animation timing values |
 | REQ-F04 | GSAP 3 core + ScrollTrigger plugin loaded via CDN (jsDelivr) in the `<head>` of the base template |
@@ -20,7 +20,7 @@ Each requirement is specific and testable — it should be possible to verify pa
 | REQ-F06 | Primary nav structure: Home \| Work \| Writing \| About \| Contact — "Contact" is an anchor link to `/about#contact`; Earlier Work page exists but is hidden from nav |
 | REQ-F07 | Work index at `/work` (or `/work/index.html`) established before any project sub-pages are created |
 | REQ-F08 | Site title set to "Origami Games" or designer's name — visible in browser tab on every page |
-| REQ-F09 | Custom domain connected and HTTPS confirmed active via GitHub Pages custom domain settings |
+| REQ-F09 | Custom domain connected and HTTPS confirmed active via Netlify domain management |
 
 ---
 

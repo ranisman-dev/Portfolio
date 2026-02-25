@@ -13,13 +13,15 @@ Set up all infrastructure that every subsequent phase depends on: platform confi
 <decisions>
 ## Implementation Decisions
 
-### Platform (CRITICAL CHANGE — Roadmap update required)
-- **Platform changed from Squarespace Business to GitHub Pages (free static hosting)**
+### Platform (CONFIRMED: Netlify)
+- **Platform: Netlify** — auto-deploys from private GitHub repo (`main` branch)
 - User has domain registration (formerly Google Domains, now via Squarespace DNS) but no Squarespace hosting plan
-- Host on GitHub Pages; switch to Netlify if GitHub Pages causes issues (Netlify connects to same GitHub repo)
+- GitHub repo is **private** — Netlify connects to it; GitHub Pages free tier requires public repos
 - Stack: Raw HTML/CSS/JS files — no static site generator for now
-- Edit locally → commit → push to GitHub → GitHub Pages auto-deploys
-- **IMPORTANT: ROADMAP.md was written for Squarespace 7.1 Business. All Squarespace-specific tasks (code injection, AJAX pattern, sqs-* selectors, template selection test) are no longer relevant. Roadmap phases need to be updated for a static HTML site before planning begins.**
+- Edit locally → commit → push to GitHub → Netlify auto-deploys
+- No `.nojekyll` needed — Netlify does not use Jekyll; `_includes/` directory is served normally
+- CNAME file in repo root: leave unmodified — it is not used by Netlify but was there from before; treat as read-only
+- Domain and HTTPS configured via Netlify dashboard (not GitHub Pages settings)
 
 ### Design tokens / Aesthetic direction
 - Color direction: warm neutrals as base (paper-like, off-whites/warm grays) + indie internet personality
@@ -29,8 +31,8 @@ Set up all infrastructure that every subsequent phase depends on: platform confi
 - Typography: Claude's discretion — propose a pairing that fits warm/cozy/indie feel; user will review after first draft
 
 ### Git workflow
-- GitHub Pages: `main` branch = live site
-- Local structure: `/css/`, `/js/`, `/pages/` (or equivalent static structure)
+- Netlify: push to `main` = auto-deploy (replaces GitHub Pages auto-deploy)
+- Local structure: `/css/`, `/js/`, `_includes/`, directory-per-page (e.g. `work/index.html`)
 - Plain files — no build tools, no npm, no bundler in Phase 1
 
 ### Nav structure
@@ -41,7 +43,7 @@ Set up all infrastructure that every subsequent phase depends on: platform confi
 - Footer on every page: email/contact link (ever-present contact fallback)
 
 ### Phase 1 scope (what "done" means)
-- GitHub Pages repo configured and serving the domain
+- Netlify connected to GitHub repo and serving the domain
 - All 5 nav destinations exist as HTML files with correct skeleton structure
 - CSS custom properties file in place with color tokens, spacing, type scale (even if values are provisional)
 - GSAP 3 + ScrollTrigger loaded via CDN in the base HTML template
@@ -69,15 +71,10 @@ Set up all infrastructure that every subsequent phase depends on: platform confi
 <deferred>
 ## Deferred Ideas
 
-- Template selection (Paloma vs. Hester) — no longer relevant; platform changed to GitHub Pages
-- Squarespace AJAX re-init pattern — no longer relevant; no Squarespace AJAX navigation
+- Template selection (Paloma vs. Hester) — no longer relevant; platform is Netlify/static HTML
+- Squarespace AJAX re-init pattern — no longer relevant; no Squarespace
 - Static site generator (Eleventy/Jekyll) — deferred; start with raw HTML and add if repetition becomes a problem
-- Netlify deployment — start with GitHub Pages; switch if needed
-
-## Critical Follow-up Before Planning
-- **ROADMAP.md must be updated to reflect the GitHub Pages platform change before `/gsd:plan-phase 1` is run**
-- All Squarespace-specific deliverables in Phase 1 and downstream phases need to be replaced with static site equivalents
-- Suggest: run `/gsd:new-project` or manually edit ROADMAP.md to update Phase 1 deliverables and review Phases 2–10 for Squarespace-specific assumptions
+- GitHub Pages as hosting target — confirmed not used; repo is private; Netlify is the deployment platform
 
 </deferred>
 
