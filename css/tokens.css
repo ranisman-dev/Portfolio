@@ -35,15 +35,15 @@
   --font-body:    'Source Code Pro', 'Courier New', Courier, monospace;
   --font-mono:    'Source Code Pro', 'Courier New', Courier, monospace;  /* same as body — body is already monospace */
 
-  /* Type scale — major third ratio (1.25x) */
-  --text-xs:   0.64rem;   /* ~10px — labels, captions */
-  --text-sm:   0.8rem;    /* ~13px — secondary text */
+  /* Type scale — perfect fourth ratio (1.333x) */
+  --text-xs:   0.563rem;  /* ~9px  — labels, captions */
+  --text-sm:   0.75rem;   /* 12px  — secondary text */
   --text-base: 1rem;      /* 16px  — body copy */
-  --text-md:   1.25rem;   /* 20px  — lead paragraph */
-  --text-lg:   1.563rem;  /* 25px  — h3, card titles */
-  --text-xl:   1.953rem;  /* 31px  — h2, section headings */
-  --text-2xl:  2.441rem;  /* 39px  — h1, page titles */
-  --text-3xl:  3.052rem;  /* ~49px — hero display text */
+  --text-md:   1.333rem;  /* ~21px — lead paragraph */
+  --text-lg:   1.777rem;  /* ~28px — h3, card titles */
+  --text-xl:   2.369rem;  /* ~38px — h2, section headings */
+  --text-2xl:  3.157rem;  /* ~51px — h1, page titles */
+  --text-3xl:  4.209rem;  /* ~67px — hero display text */
 
   /* Line heights */
   --leading-tight:  1.2;
