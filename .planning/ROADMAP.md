@@ -81,7 +81,12 @@ register — warm, indie-internet, cozy, personal — that every subsequent page
   5. The home page loads in under 3 seconds on a standard connection with no visible content shift or animation-blocked render
   6. The layout is readable and correctly proportioned at 375px mobile width — no text overflow, no broken card layout
 
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — Home page HTML structure: hero markup, SVG grain filter, 3 project cards
+- [ ] 02-02-PLAN.md — CSS component styles: hero section, card grid, hover interactions, dog-ear effect
+- [ ] 02-03-PLAN.md — Visual verification: above-fold check, mobile 375px, hover, footer links
 
 ---
 
@@ -265,7 +270,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation Scaffold | 4/4 | Complete | 2026-02-25 |
-| 2. Home / Landing | 0/TBD | Not started | - |
+| 2. Home / Landing | 0/3 | Planned | - |
 | 3. Work Index + First Case Study | 0/TBD | Not started | - |
 | 4. Additional Work Content | 0/TBD | Not started | - |
 | 5. Writing Section | 0/TBD | Not started | - |
