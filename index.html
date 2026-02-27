@@ -20,14 +20,74 @@
 </head>
 <body class="page-home">
 
+  <!-- Hidden SVG grain filter — must NOT be display:none (browser won't process SVG filters if display:none) -->
+  <!-- filter: url(#grain) in CSS references this element's id -->
+  <svg width="0" height="0" style="position:absolute;overflow:hidden" aria-hidden="true" focusable="false">
+    <defs>
+      <filter id="grain" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.72" numOctaves="4" stitchTiles="stitch" result="noise"/>
+        <feColorMatrix type="saturate" values="0" in="noise" result="grayNoise"/>
+        <feBlend in="SourceGraphic" in2="grayNoise" mode="overlay" result="blended"/>
+        <feComposite in="blended" in2="SourceGraphic" operator="in"/>
+      </filter>
+    </defs>
+  </svg>
+
   <!-- Nav injected here by js/nav.js — do not put nav markup here directly -->
   <div id="site-nav"></div>
 
   <main id="main-content">
-    <div class="container">
-      <h1>Origami Games</h1>
-      <p>Narrative &amp; Experience Engineer — portfolio coming together.</p>
-    </div>
+
+    <!-- Visually hidden h1 for screen readers — philosophy statement is the primary page identity -->
+    <h1 class="visually-hidden">Rebecca Anisman — Narrative &amp; Experience Engineer</h1>
+
+    <section class="hero" aria-label="Introduction">
+      <div class="hero__inner">
+        <p class="hero__statement">
+          I design game systems that encourage players to reflect on their
+          well-being and how they navigate pressure and meaning.
+        </p>
+        <div class="hero__identity">
+          <span class="hero__name">Rebecca Anisman</span>
+          <span class="hero__role">Narrative &amp; Experience Engineer</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="cards-section" aria-label="Featured projects">
+      <div class="container">
+        <ul class="cards-grid" role="list">
+          <li>
+            <a class="project-card" href="/work/wellbeing-game/">
+              <div class="project-card__thumb thumb-grain" aria-hidden="true"></div>
+              <div class="project-card__body">
+                <h2 class="project-card__title">Wellbeing Game</h2>
+                <p class="project-card__descriptor">Narrative systems for player reflection on pressure and meaning.</p>
+              </div>
+            </a>
+          </li>
+          <li>
+            <a class="project-card" href="/work/experience-design/">
+              <div class="project-card__thumb thumb-grain" aria-hidden="true"></div>
+              <div class="project-card__body">
+                <h2 class="project-card__title">Experience Design</h2>
+                <p class="project-card__descriptor">Systemic design for emotional resonance and player agency.</p>
+              </div>
+            </a>
+          </li>
+          <li>
+            <a class="project-card" href="/work/narrative-systems/">
+              <div class="project-card__thumb thumb-grain" aria-hidden="true"></div>
+              <div class="project-card__body">
+                <h2 class="project-card__title">Narrative Systems</h2>
+                <p class="project-card__descriptor">Writing and design intertwined — games that ask hard, quiet questions.</p>
+              </div>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </section>
+
   </main>
 
   <!-- Footer injected here by js/nav.js — do not put footer markup here directly -->
