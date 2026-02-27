@@ -76,6 +76,7 @@
   --max-width-content: 72rem;  /* 1152px — page container */
   --max-width-prose:   65ch;   /* ~65 chars — body text column */
   --max-width-narrow:  45ch;   /* short-form content */
+  --nav-height: 72px;  /* sticky nav height: space-4×2 padding + ~text-lg line-height */
 
   /* ── Animation (define now; Phase 8 uses them) ──── */
 
