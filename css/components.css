@@ -53,30 +53,27 @@
 
 /* ── Site Footer ──────────────────────────────────── */
 
+/* Terracotta border-top replaces the grey one — makes the separator feel branded.
+   A small diamond glyph (◆) as ::before mark, centered above the footer links.
+   contact links pick up accent color on hover. */
 .site-footer {
-  padding: var(--space-12) var(--space-6);
-  border-top: 1px solid var(--color-border);
+  padding: var(--space-10) var(--space-6) var(--space-12);
+  border-top: 3px solid var(--color-accent);
   background-color: var(--color-bg-surface);
   text-align: center;
-  position: relative;
 }
 
-/* Origami accent: small peach upward-pointing triangle at the top of the footer.
-   Sits just inside the border-top rule — a closing mark, like the last fold of a page.
-   CSS border triangle: zero-size box, bottom border forms the triangle face pointing up.
-   Centered via left: 50% / transform translateX. */
+/* Origami closing mark — three terracotta diamonds above the footer nav.
+   Three glyphs spaced with letter-spacing — reads as a colophon / closing seal.
+   Renders at any resolution, no image needed. */
 .site-footer::before {
-  content: "";
-  position: absolute;
-  top: -1px; /* flush with the border-top rule */
-  left: 50%;
-  transform: translateX(-50%);
-  width: 0;
-  height: 0;
-  border-style: solid;
-  border-width: 0 7px 10px 7px;
-  border-color: transparent transparent var(--color-secondary) transparent;
-  opacity: 0.75;
+  content: "◆ ◆ ◆";
+  display: block;
+  font-size: 0.55rem;
+  color: var(--color-accent);
+  letter-spacing: 0.6em;
+  margin-bottom: var(--space-6);
+  opacity: 0.9;
 }
 
 .site-footer__nav {
@@ -110,6 +107,10 @@
   color: var(--color-text-muted);
 }
 
+.site-footer__contact a:hover {
+  color: var(--color-accent);
+}
+
 .site-footer__credit {
   font-size: var(--text-xs);
   color: var(--color-text-muted);
@@ -130,7 +131,7 @@
 
 /* Hero section: full-viewport philosophy statement above the fold.
    The ::before overlay applies the SVG grain texture (filter: url(#grain)).
-   The grain filter element is defined inline in index.html body — not display:none.
+   The ::after places a folded bottom-left corner accent in peach.
    Hero min-height uses svh (stable viewport height) with 100vh fallback.
    Adjust --nav-height in tokens.css if the sticky nav height changes. */
 
@@ -157,6 +158,26 @@
   background-color: var(--color-bg);
 }
 
+/* Origami corner fold on the hero — bottom-left corner fold detail.
+   A large peach triangle sitting in the bottom-left of the hero section.
+   Evokes a page corner being folded up — the hero is a "page" about to be turned.
+   Clipped by .hero { overflow: hidden } so it stays within the section boundary. */
+.hero::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  /* Bottom-left triangle: left + bottom borders form the triangle */
+  border-width: 0 0 80px 80px;
+  border-color: transparent transparent transparent var(--color-secondary);
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: 0;
+}
+
 .hero__inner {
   position: relative;
   z-index: 1;
@@ -165,6 +186,10 @@
   padding: var(--space-20) var(--space-6);
 }
 
+/* Philosophy statement — terracotta left border + underline accent.
+   Left border acts as a pull-quote / blockquote marker — intentional and branded.
+   Underline echoes the accent color at a finer weight for texture.
+   text-align stays centered; border appears on the left edge of the text block. */
 .hero__statement {
   font-family: var(--font-display);
   font-size: var(--text-xl);
@@ -175,6 +200,12 @@
   max-width: 52ch;
   margin-inline: auto;
   margin-bottom: var(--space-10);
+  padding-left: var(--space-6);
+  border-left: 3px solid var(--color-accent);
+  text-decoration: underline;
+  text-decoration-color: var(--color-accent);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 6px;
 }
 
 .hero__identity {
@@ -184,19 +215,18 @@
   align-items: center;
 }
 
-/* Origami accent: small terracotta diamond above the name/role.
-   A rotated square (via transform) in the accent colour — flat geometric,
-   not pixel art. Sits in the space between philosophy statement and identity.
-   Sized to feel like a typographic ornament, not a focal point. */
+/* Origami accent: terracotta diamond between the philosophy and name/role.
+   A rotated square — flat geometric, on-brand for Origami Games.
+   12px at full opacity for confident, readable presence. */
 .hero__identity::before {
   content: "";
   display: block;
-  width: 8px;
-  height: 8px;
+  width: 12px;
+  height: 12px;
   background-color: var(--color-accent);
   transform: rotate(45deg);
   margin-bottom: var(--space-4);
-  opacity: 0.7;
+  opacity: 1;
 }
 
 .hero__name {
@@ -219,11 +249,29 @@
   .hero__name { font-size: var(--text-md); }
 }
 
+/* ── Section Divider — Hero → Cards ──────────────────── */
+
+/* A decorative row of small peach diamonds between the hero and the card grid.
+   Sits above the cards-section content — a visual "breath" and brand mark.
+   SVG data URI: three diamonds spaced evenly, peach fill.
+   Rendered as a background-image on ::before — no extra HTML required. */
+.cards-section::before {
+  content: "";
+  display: block;
+  height: 14px;
+  margin-bottom: var(--space-10);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='14'%3E%3Crect x='26' y='3' width='8' height='8' fill='%23f2d5aa' transform='rotate(45 30 7)'/%3E%3C/svg%3E");
+  background-repeat: repeat-x;
+  background-position: center;
+  background-size: 60px 14px;
+  opacity: 0.9;
+}
+
 /* ── Project Cards ────────────────────────────────── */
 
 /* Project cards: 3-col grid → 2-col tablet → 1-col mobile.
    Each card is a block <a> link wrapping thumbnail + text.
-   .thumb-grain is the reusable "no real image" fill — crosshatch data URI.
+   Left border in terracotta-subtle by default, full terracotta on hover.
    Dog-ear fold is a CSS triangle (::after on .thumb-grain) — no clip-path, card border-radius preserved.
    Shadow hover uses ::after opacity (GPU) not direct box-shadow (causes repaints). */
 
@@ -262,12 +310,16 @@
   color: inherit;
   background-color: var(--color-bg-surface);
   border: 1px solid var(--color-border);
+  /* Left accent border — terracotta-subtle at rest, full terracotta on hover */
+  border-left: 3px solid var(--color-accent-subtle);
   border-radius: var(--radius-base);
   overflow: hidden;
   position: relative;
   box-shadow: 0 2px 6px rgba(42, 31, 20, 0.08);
   transform: translateY(0);
-  transition: transform var(--duration-base) var(--ease-out), border-color var(--duration-base);
+  transition: transform var(--duration-base) var(--ease-out),
+              border-color var(--duration-base),
+              border-left-color var(--duration-base);
 }
 
 .project-card::after {
@@ -285,19 +337,30 @@
 .project-card:hover {
   transform: translateY(-4px);
   border-color: var(--color-border-strong);
+  border-left-color: var(--color-accent);
 }
 
 .project-card:hover::after {
   opacity: 1;
 }
 
+/* Card title shifts to terracotta on hover — confident color accent */
+.project-card:hover .project-card__title {
+  color: var(--color-accent);
+}
+
 .project-card:focus-within {
   transform: translateY(-4px);
   border-color: var(--color-border-strong);
+  border-left-color: var(--color-accent);
 }
 
 .project-card:focus-within::after {
   opacity: 1;
+}
+
+.project-card:focus-within .project-card__title {
+  color: var(--color-accent);
 }
 
 /* Reusable "no image" texture class — applies to .project-card__thumb and any future
@@ -318,9 +381,9 @@
 
 /* Folded top-right corner — the "physical fold" illusion.
    Technique: zero-size element with border trick creates a right triangle.
-   border-left: transparent (invisible) + border-bottom: transparent (invisible)
-   + border-top: coloured = top-right triangle pointing into the image.
-   box-shadow beneath the fold simulates the crease shadow on the surface below. */
+   border-top-color = folded flap face (card surface tone)
+   border-right-color = outer edge reveal (page background tone)
+   filter drop-shadow simulates the crease shadow beneath. */
 .thumb-grain::after {
   content: "";
   position: absolute;
@@ -328,15 +391,12 @@
   right: 0;
   width: 0;
   height: 0;
-  /* Triangle size: 28px default fold */
   border-style: solid;
   border-width: 28px 28px 0 0;
-  /* Top-right triangle: top border = folded flap colour, right border = card bg */
-  border-top-color: var(--color-bg-surface);   /* flap face — matches card surface */
-  border-right-color: var(--color-bg);          /* outer edge — matches page bg, creates reveal */
+  border-top-color: var(--color-bg-surface);
+  border-right-color: var(--color-bg);
   border-bottom-color: transparent;
   border-left-color: transparent;
-  /* Crease shadow: slight shadow beneath the fold */
   filter: drop-shadow(-2px 2px 3px rgba(42, 31, 20, 0.18));
   transition: border-width var(--duration-base) var(--ease-out),
               filter var(--duration-base) var(--ease-out);
@@ -360,6 +420,7 @@
   color: var(--color-text);
   margin: 0 0 var(--space-2);
   line-height: var(--leading-snug);
+  transition: color var(--duration-base);
 }
 
 .project-card__descriptor {
@@ -371,7 +432,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  /* Card hover: no translate — subtle border + opacity only */
+  /* Card hover: no translate — subtle border + opacity + color only */
   .project-card,
   .project-card::after {
     transition: opacity var(--duration-base), border-color var(--duration-base);
