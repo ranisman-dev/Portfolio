@@ -287,7 +287,7 @@
   text-decoration: none;
   color: inherit;
   background-color: var(--color-bg-surface);
-  border: 1px solid var(--color-border);
+  border: none;
   /* Left accent border — terracotta-subtle at rest, full terracotta on hover */
   border-left: 3px solid var(--color-accent-subtle);
   border-radius: var(--radius-base);
@@ -296,7 +296,6 @@
   box-shadow: 0 2px 6px rgba(42, 31, 20, 0.08);
   transform: translateY(0);
   transition: transform var(--duration-base) var(--ease-out),
-              border-color var(--duration-base),
               border-left-color var(--duration-base);
 }
 
@@ -314,7 +313,6 @@
 
 .project-card:hover {
   transform: translateY(-4px);
-  border-color: var(--color-border-strong);
   border-left-color: var(--color-accent);
 }
 
@@ -329,7 +327,6 @@
 
 .project-card:focus-within {
   transform: translateY(-4px);
-  border-color: var(--color-border-strong);
   border-left-color: var(--color-accent);
 }
 
