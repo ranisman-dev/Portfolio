@@ -357,34 +357,39 @@
   overflow: hidden; /* clips the fold flap cleanly at the thumbnail edge */
 }
 
-/* Folded top-right corner — the "physical fold" illusion.
-   Technique: zero-size element with border trick creates a right triangle.
-   border-top-color = folded flap face (card surface tone)
-   border-right-color = outer edge reveal (page background tone)
-   filter drop-shadow simulates the crease shadow beneath. */
+/* Folded top-right corner — patterned origami paper illusion.
+   Technique: sized element with clip-path triangle so the flap can carry
+   a background pattern (CSS borders can only be solid colors).
+   clip-path: polygon(0 0, 100% 0, 100% 100%) = top-right right triangle.
+   Pattern: diagonal terracotta stripes on peach — like printed origami paper.
+   filter drop-shadow simulates the crease shadow at the fold edge. */
 .thumb-grain::after {
   content: "";
   position: absolute;
   top: 0;
   right: 0;
-  width: 0;
-  height: 0;
-  border-style: solid;
-  border-width: 28px 28px 0 0;
-  border-top-color: var(--color-bg-surface);
-  border-right-color: var(--color-bg);
-  border-bottom-color: transparent;
-  border-left-color: transparent;
-  filter: drop-shadow(-2px 2px 3px rgba(42, 31, 20, 0.18));
-  transition: border-width var(--duration-base) var(--ease-out),
+  width: 28px;
+  height: 28px;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    #c4614a 0px,
+    #c4614a 2px,
+    #f2d5aa 2px,
+    #f2d5aa 8px
+  );
+  clip-path: polygon(0 0, 100% 0, 100% 100%);
+  filter: drop-shadow(-2px 2px 3px rgba(42, 31, 20, 0.22));
+  transition: width var(--duration-base) var(--ease-out),
+              height var(--duration-base) var(--ease-out),
               filter var(--duration-base) var(--ease-out);
 }
 
-/* On hover: fold deepens — triangle grows */
+/* On hover: fold deepens — flap grows */
 .project-card:hover .thumb-grain::after,
 .project-card:focus-within .thumb-grain::after {
-  border-width: 40px 40px 0 0;
-  filter: drop-shadow(-3px 3px 4px rgba(42, 31, 20, 0.24));
+  width: 40px;
+  height: 40px;
+  filter: drop-shadow(-3px 3px 5px rgba(42, 31, 20, 0.28));
 }
 
 .project-card__body {
