@@ -393,15 +393,18 @@
 
 .thumb-grain::after {
   /* Background reveal — the top-right triangle where the corner used to be.
-     The paper has lifted away here; shows the page background behind the card. */
+     Pushed 2px outside the thumbnail (top:-2px, right:-2px) so its top and right
+     edges are clipped by overflow:hidden and never create a visible seam.
+     clip-path uses pixel anchor (2px 2px) so the diagonal stays in the correct
+     parent position regardless of element size — no recalculation needed on hover. */
   content: "";
   position: absolute;
-  top: 0;
-  right: 0;
-  width: 32px;
-  height: 32px;
+  top: -2px;
+  right: -2px;
+  width: 36px;
+  height: 36px;
   background-color: var(--color-bg);
-  clip-path: polygon(0% 0%, 100% 0%, 100% 100%);
+  clip-path: polygon(2px 2px, 100% 0%, 100% 100%);
   z-index: 1;
   pointer-events: none;
   transition: width var(--duration-base) var(--ease-out),
@@ -419,8 +422,8 @@
 
 .project-card:hover .thumb-grain::after,
 .project-card:focus-within .thumb-grain::after {
-  width: 44px;
-  height: 44px;
+  width: 46px;
+  height: 46px;
 }
 
 .project-card__body {
