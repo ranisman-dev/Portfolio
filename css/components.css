@@ -131,7 +131,6 @@
 
 /* Hero section: full-viewport philosophy statement above the fold.
    The ::before overlay applies the SVG grain texture (filter: url(#grain)).
-   The ::after places a folded bottom-left corner accent in peach.
    Hero min-height uses svh (stable viewport height) with 100vh fallback.
    Adjust --nav-height in tokens.css if the sticky nav height changes. */
 
@@ -143,7 +142,6 @@
   align-items: center;
   justify-content: center;
   background-color: var(--color-bg);
-  overflow: hidden;
 }
 
 .hero::before {
@@ -156,26 +154,6 @@
   pointer-events: none;
   z-index: 0;
   background-color: var(--color-bg);
-}
-
-/* Origami corner fold on the hero — bottom-left corner fold detail.
-   A large peach triangle sitting in the bottom-left of the hero section.
-   Evokes a page corner being folded up — the hero is a "page" about to be turned.
-   Clipped by .hero { overflow: hidden } so it stays within the section boundary. */
-.hero::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 0;
-  height: 0;
-  border-style: solid;
-  /* Bottom-left triangle: left + bottom borders form the triangle */
-  border-width: 0 0 80px 80px;
-  border-color: transparent transparent transparent var(--color-secondary);
-  opacity: 0.5;
-  pointer-events: none;
-  z-index: 0;
 }
 
 .hero__inner {
