@@ -357,13 +357,13 @@
   overflow: hidden; /* clips the fold flap cleanly at the thumbnail edge */
 }
 
-/* Folded top-right corner — two-layer origami paper illusion.
-   ::before = shadow gap: the dark area visible under the lifted flap,
-              gives the fold its depth (the paper has pulled away from the corner).
-   ::after  = patterned flap: the folded-back face of the paper, sitting on top.
-              Crosshatch pattern (two repeating-linear-gradient layers) reads as
-              a real printed origami paper pattern, not just stripes.
-   Both triangles use clip-path: polygon(0 0, 100% 0, 100% 100%) = top-right triangle. */
+/* Folded top-right corner — two triangles, same square, fold crease between them.
+   Both ::before and ::after are the SAME size and position, together filling one
+   corner square. The diagonal clip-path splits them along the fold crease:
+     ::before = bottom-left triangle = shadow gap (dark, recessed — the inside of the fold)
+     ::after  = top-right triangle   = patterned flap (the folded-back face of the paper)
+   Together they read as a single square corner unit, not a floating triangle.
+   The drop-shadow on ::after lifts the flap above the surface to complete the 3D illusion. */
 
 .thumb-grain::before {
   content: "";
@@ -372,8 +372,8 @@
   right: 0;
   width: 32px;
   height: 32px;
-  background: rgba(42, 31, 20, 0.22);
-  clip-path: polygon(0 0, 100% 0, 100% 100%);
+  background: rgba(42, 31, 20, 0.25);
+  clip-path: polygon(0% 0%, 0% 100%, 100% 100%);
   z-index: 1;
   pointer-events: none;
   transition: width var(--duration-base) var(--ease-out),
@@ -385,14 +385,14 @@
   position: absolute;
   top: 0;
   right: 0;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   background-color: #f2d5aa;
   background-image:
     repeating-linear-gradient(45deg,  rgba(196, 97, 74, 0.5) 0, rgba(196, 97, 74, 0.5) 1.5px, transparent 0, transparent 50%),
     repeating-linear-gradient(135deg, rgba(196, 97, 74, 0.5) 0, rgba(196, 97, 74, 0.5) 1.5px, transparent 0, transparent 50%);
   background-size: 7px 7px;
-  clip-path: polygon(0 0, 100% 0, 100% 100%);
+  clip-path: polygon(0% 0%, 100% 0%, 100% 100%);
   filter: drop-shadow(-2px 2px 3px rgba(42, 31, 20, 0.22));
   z-index: 2;
   pointer-events: none;
@@ -401,7 +401,7 @@
               filter var(--duration-base) var(--ease-out);
 }
 
-/* On hover: both triangles grow — fold deepens */
+/* On hover: both grow together — the whole corner square deepens */
 .project-card:hover .thumb-grain::before,
 .project-card:focus-within .thumb-grain::before {
   width: 44px;
@@ -410,8 +410,8 @@
 
 .project-card:hover .thumb-grain::after,
 .project-card:focus-within .thumb-grain::after {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   filter: drop-shadow(-3px 3px 5px rgba(42, 31, 20, 0.28));
 }
 
