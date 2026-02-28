@@ -366,21 +366,8 @@
    The drop-shadow on ::after lifts the flap above the surface to complete the 3D illusion. */
 
 .thumb-grain::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 32px;
-  height: 32px;
-  background: rgba(42, 31, 20, 0.25);
-  clip-path: polygon(0% 0%, 0% 100%, 100% 100%);
-  z-index: 1;
-  pointer-events: none;
-  transition: width var(--duration-base) var(--ease-out),
-              height var(--duration-base) var(--ease-out);
-}
-
-.thumb-grain::after {
+  /* Patterned flap — the folded-back face of the card (bottom-left triangle).
+     The corner has folded forward over the crease; this is its reverse/patterned side now visible. */
   content: "";
   position: absolute;
   top: 0;
@@ -392,13 +379,30 @@
     repeating-linear-gradient(45deg,  rgba(196, 97, 74, 0.5) 0, rgba(196, 97, 74, 0.5) 1.5px, transparent 0, transparent 50%),
     repeating-linear-gradient(135deg, rgba(196, 97, 74, 0.5) 0, rgba(196, 97, 74, 0.5) 1.5px, transparent 0, transparent 50%);
   background-size: 7px 7px;
-  clip-path: polygon(0% 0%, 100% 0%, 100% 100%);
+  clip-path: polygon(0% 0%, 0% 100%, 100% 100%);
   filter: drop-shadow(-2px 2px 3px rgba(42, 31, 20, 0.22));
   z-index: 2;
   pointer-events: none;
   transition: width var(--duration-base) var(--ease-out),
               height var(--duration-base) var(--ease-out),
               filter var(--duration-base) var(--ease-out);
+}
+
+.thumb-grain::after {
+  /* Background reveal — the top-right triangle where the corner used to be.
+     The paper has lifted away here; shows the page background behind the card. */
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 32px;
+  height: 32px;
+  background-color: var(--color-bg);
+  clip-path: polygon(0% 0%, 100% 0%, 100% 100%);
+  z-index: 1;
+  pointer-events: none;
+  transition: width var(--duration-base) var(--ease-out),
+              height var(--duration-base) var(--ease-out);
 }
 
 /* On hover: both grow together — the whole corner square deepens */
