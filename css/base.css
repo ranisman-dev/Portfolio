@@ -69,3 +69,17 @@ ul, ol {
 .skip-link:focus {
   top: var(--space-2);
 }
+
+/* Visually hidden — accessible to screen readers, invisible to sighted users */
+/* Use for content that provides context to AT but would be redundant visually */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
