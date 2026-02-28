@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: unknown
-last_updated: "2026-02-26T20:47:37.348Z"
+status: in-progress
+last_updated: "2026-02-27T00:00:00Z"
 progress:
-  total_phases: 1
-  completed_phases: 1
-  total_plans: 4
-  completed_plans: 4
+  total_phases: 10
+  completed_phases: 2
+  total_plans: 7
+  completed_plans: 7
 ---
 
 # Project State
@@ -21,33 +21,34 @@ See: .planning/PROJECT.md (updated 2026-02-23)
 designs game systems encouraging players to reflect on their well-being and how they navigate
 pressure and meaning — before reading a single case study.
 
-**Current focus:** Phase 1 — Foundation COMPLETE; Phase 2 — Home / Landing is next
+**Current focus:** Phase 2 — Home / Landing COMPLETE; Phase 3 — Work Index + First Case Study is next
 
 ## Current Position
 
-Phase: 1 of 10 (Foundation Scaffold) — COMPLETE
-Plan: 4 of 4 in current phase — COMPLETE
-Status: Phase 1 complete — all 4 plans executed; Netlify connected, auto-deploy confirmed, custom domain DNS propagating
-Last activity: 2026-02-25 — Executed 01-04-PLAN.md: Netlify connected to GitHub repo, auto-deploy verified on push to main, custom domain rebeccaanisman.com configured, DNS propagating, HTTPS pending propagation
+Phase: 2 of 10 (Home / Landing) — COMPLETE
+Plan: 3 of 3 in current phase — COMPLETE
+Status: Phase 2 complete — all 3 plans executed; home page verified above fold, cards, hover, footer, mobile 375px; origami personality layer added and refined
+Last activity: 2026-02-27 — Executed 02-03-PLAN.md: visual verification checkpoint approved, origami personality added (terracotta accents, diamond geometry, card left borders), hero corner triangle removed per user feedback
 
-Progress: [██░░░░░░░░] 10% (Phase 1 complete — 4/4 plans)
+Progress: [██░░░░░░░░] 20% (Phase 2 complete — 7/7 plans across phases 1-2)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4
+- Total plans completed: 7
 - Average duration: ~11 min
-- Total execution time: ~0.5 hours
+- Total execution time: ~1.3 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | Phase 1 | 4 | ~52 min | ~13 min |
+| Phase 2 | 3 | ~43 min | ~14 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (1 min), 01-02 (1 min), 01-03 (~30 min), 01-04 (~20 min)
-- Trend: Plans 03-04 longer due to human-verify/human-action checkpoints
+- Last 5 plans: 01-03 (~30 min), 01-04 (~20 min), 02-01 (8 min), 02-02 (10 min), 02-03 (~25 min)
+- Trend: Visual verification plans take longer due to human checkpoint + iteration
 
 *Updated after each plan completion*
 
@@ -75,6 +76,12 @@ Recent decisions affecting current work:
 - Netlify DNS (name server transfer) used over Squarespace CNAME/ALIAS — Squarespace DNS does not support ALIAS/ANAME for apex domain; Netlify DNS is correct solution
 - HTTPS deferred — Let's Encrypt certificate self-provisions after DNS propagation (no manual step; check rebeccaanisman.com within 24h for padlock confirmation)
 - Auto-deploy confirmed: push to main → Netlify redeploy within 60 seconds (verified via test commit + deploy log)
+- Phase 2: SVG grain filter must use position:absolute;overflow:hidden on wrapper — display:none prevents browsers from processing SVG filters
+- Phase 2: clip-path on .thumb-grain only (not .project-card) — clip-path overrides border-radius if applied to card element
+- Phase 2: Shadow hover implemented via ::after opacity (GPU composited) not direct box-shadow (triggers repaint) — use for all interactive card/panel components across site
+- Phase 2: hero::after peach corner triangle removed — geometry without felt purpose undermines intentional-not-cluttered brand goal
+- Phase 2: Footer colophon mark = three terracotta ◆ glyphs via ::before content — visible, resolution-independent, no image needed
+- Phase 2: Philosophy statement gets 3px terracotta left border (pull-quote style) — approved as intentional brand touch
 
 ### Pending Todos
 
@@ -87,6 +94,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-25
-Stopped at: Completed 01-04-PLAN.md — Phase 1 complete. Netlify connected, auto-deploy verified, custom domain DNS propagating, HTTPS pending. Next: execute Phase 2 (Home / Landing) — run /gsd:execute-phase 2 to plan and begin.
+Last session: 2026-02-27
+Stopped at: Completed 02-03-PLAN.md — Phase 2 complete. Home page verified above fold, cards, hover, footer, mobile 375px. Origami personality layer in place. Next: execute Phase 3 (Work Index + First Case Study) — run /gsd:execute-phase 3 to plan and begin.
 Resume file: None

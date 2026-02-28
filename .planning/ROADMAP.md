@@ -22,7 +22,7 @@ no static site generator). GSAP 3 + ScrollTrigger via jsDelivr CDN.
 - Decimal phases (e.g., 2.1): Urgent insertions created via `/gsd:insert-phase`
 
 - [x] **Phase 1: Foundation Scaffold** - Netlify configured, CSS tokens defined, JS fetch includes, GSAP CDN loaded, placeholder pages at correct URLs, HTTPS active
-- [ ] **Phase 2: Home / Landing** - Philosophy statement above fold, featured project cards, footer with email and nav echo — visual and tonal register established
+- [x] **Phase 2: Home / Landing** - Philosophy statement above fold, featured project cards, footer with email and nav echo — visual and tonal register established
 - [ ] **Phase 3: Work Index + First Case Study** - `/work/` URL locked, one complete 8-section case study built and validated as the template for all subsequent project pages
 - [ ] **Phase 4: Additional Work Content** - 2–3 total case studies from the validated Phase 3 template; home page cards updated to real projects
 - [ ] **Phase 5: Writing Section** - Writing section at `/writing/` with inline excerpts; cross-linked from project pages
@@ -84,9 +84,9 @@ register — warm, indie-internet, cozy, personal — that every subsequent page
 **Plans**: 3 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Home page HTML structure: hero markup, SVG grain filter, 3 project cards
-- [ ] 02-02-PLAN.md — CSS component styles: hero section, card grid, hover interactions, dog-ear effect
-- [ ] 02-03-PLAN.md — Visual verification: above-fold check, mobile 375px, hover, footer links
+- [x] 02-01-PLAN.md — Home page HTML structure: hero markup, SVG grain filter, 3 project cards
+- [x] 02-02-PLAN.md — CSS component styles: hero section, card grid, hover interactions, dog-ear effect
+- [x] 02-03-PLAN.md — Visual verification: above-fold check, mobile 375px, hover, footer links
 
 ---
 
@@ -270,7 +270,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation Scaffold | 4/4 | Complete | 2026-02-25 |
-| 2. Home / Landing | 0/3 | Planned | - |
+| 2. Home / Landing | 3/3 | Complete | 2026-02-27 |
 | 3. Work Index + First Case Study | 0/TBD | Not started | - |
 | 4. Additional Work Content | 0/TBD | Not started | - |
 | 5. Writing Section | 0/TBD | Not started | - |
@@ -310,14 +310,14 @@ every subsequent phase that introduces new CSS or JS.
 | REQ-F09 | Phase 1 | Complete |
 | REQ-N01 | Phase 1 | Complete |
 | REQ-N03 | Phase 1 | Complete |
-| REQ-H01 | Phase 2 | Pending |
-| REQ-H02 | Phase 2 | Pending |
-| REQ-H03 | Phase 2 | Pending |
-| REQ-H04 | Phase 2 | Pending |
-| REQ-H05 | Phase 2 | Pending |
-| REQ-H06 | Phase 2 | Pending |
-| REQ-N02 | Phase 2 | Pending |
-| REQ-N04 | Phase 2 | Pending |
+| REQ-H01 | Phase 2 | Complete |
+| REQ-H02 | Phase 2 | Complete |
+| REQ-H03 | Phase 2 | Complete |
+| REQ-H04 | Phase 2 | Complete |
+| REQ-H05 | Phase 2 | Complete |
+| REQ-H06 | Phase 2 | Complete |
+| REQ-N02 | Phase 2 | Complete |
+| REQ-N04 | Phase 2 | Complete |
 | REQ-W01 | Phase 3 | Pending |
 | REQ-W02 | Phase 3 | Pending |
 | REQ-W03 | Phase 3 | Pending |
