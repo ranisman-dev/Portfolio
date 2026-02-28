@@ -422,8 +422,8 @@
 
 .project-card:hover .thumb-grain::after,
 .project-card:focus-within .thumb-grain::after {
-  width: 46px;
-  height: 46px;
+  width: 48px;
+  height: 48px;
 }
 
 .project-card__body {
