@@ -2,7 +2,12 @@
   "permissions": {
     "allow": [
       "Bash(cd:*)",
-      "Bash(git:*)"
+      "Bash(git:*)",
+      "Bash(node:*)",
+      "Bash(gh auth:*)",
+      "Bash(cat:*)",
+      "WebSearch",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ]
   }
 }
