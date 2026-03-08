@@ -1,0 +1,32 @@
+[
+  {
+    "slug": "project-1",
+    "title": "Koibito",
+    "role": "UI Designer · Writer",
+    "tag": "Windows · Released",
+    "descriptor": "An educational visual novel where pitch accent practice is disguised as a dating sim.",
+    "thumbnail": "/img/projects/koibito.png",
+    "visible": true,
+    "featured": true
+  },
+  {
+    "slug": "project-2",
+    "title": "Hero's Folly",
+    "role": "Designer · Creator",
+    "tag": "TTRPG · In Development",
+    "descriptor": "A tabletop RPG about the cost of chronic self-sacrifice — and what it means to finally say no.",
+    "thumbnail": null,
+    "visible": true,
+    "featured": true
+  },
+  {
+    "slug": "project-3",
+    "title": "Hyperfocus Swing",
+    "role": "Creator",
+    "tag": "Mobile · Prototype",
+    "descriptor": "A mobile runner where you swing from thought to thought — stay in motion or lose your focus to the brain fog below.",
+    "thumbnail": null,
+    "visible": true,
+    "featured": true
+  }
+]

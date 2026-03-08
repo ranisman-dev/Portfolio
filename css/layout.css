@@ -8,8 +8,10 @@
   min-height: 100vh;
 }
 
-.page-wrapper > main {
+.page-wrapper > main,
+main {
   flex: 1;
+  padding-bottom: var(--space-16);
 }
 
 .container {
