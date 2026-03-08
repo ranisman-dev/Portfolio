@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project 3 — Origami Games</title>
+  <meta name="description" content="[Project 3 summary]">
+
+  <!-- Google Fonts: Montserrat Alternates (display/headings) + Source Code Pro (body/UI) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat+Alternates:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Source+Code+Pro:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+
+  <!-- Styles: load in dependency order — tokens first -->
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/animations.css">
+</head>
+<!-- STUB: This page is not yet visible in the Work index. Uncomment this project's card in /work/index.html to make it visible. -->
+<body class="page-case-study">
+
+  <!-- Hidden SVG grain filter — must NOT be display:none (browser won't process SVG filters if display:none) -->
+  <!-- filter: url(#grain) in CSS references this element's id -->
+  <svg width="0" height="0" style="position:absolute;overflow:hidden" aria-hidden="true" focusable="false">
+    <defs>
+      <filter id="grain" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.72" numOctaves="4" stitchTiles="stitch" result="noise"/>
+        <feColorMatrix type="saturate" values="0" in="noise" result="grayNoise"/>
+        <feBlend in="SourceGraphic" in2="grayNoise" mode="overlay" result="blended"/>
+        <feComposite in="blended" in2="SourceGraphic" operator="in"/>
+      </filter>
+    </defs>
+  </svg>
+
+  <!-- Nav injected here by js/nav.js — do not put nav markup here directly -->
+  <div id="site-nav"></div>
+
+  <main id="main-content">
+    <article class="case-study">
+
+      <!-- Section 1: Hero — title, metadata, image placeholder -->
+      <section class="case-study__hero">
+        <div class="case-study__label" aria-hidden="true">Project</div>
+        <h1 class="case-study__title">[Project 3 — placeholder]</h1>
+        <div class="case-study__meta">
+          <span class="case-study__role">[Specific Role]</span>
+          <span class="case-study__tag">[Platform / Status]</span>
+        </div>
+        <div class="case-study__hero-image thumb-grain" aria-hidden="true"></div>
+      </section>
+
+      <div class="section-divider" aria-hidden="true"></div>
+
+      <!-- Section 2: Summary -->
+      <section class="case-study__section">
+        <div class="case-study__label" aria-hidden="true">Summary</div>
+        <p>[2–4 sentence project summary for non-industry readers.]</p>
+      </section>
+
+      <div class="section-divider" aria-hidden="true"></div>
+
+      <!-- Section 3: Challenge -->
+      <section class="case-study__section">
+        <div class="case-study__label" aria-hidden="true">Challenge</div>
+        <p>[Design challenge / problem statement.]</p>
+      </section>
+
+      <div class="section-divider" aria-hidden="true"></div>
+
+      <!-- Section 4: Process -->
+      <section class="case-study__section">
+        <div class="case-study__label" aria-hidden="true">Process</div>
+        <p>[Process / approach narrative with supporting artifacts.]</p>
+        <!-- Artifact brief (REQ-W06) — uncomment when a prototype or artifact adds information
+             that screenshots alone cannot communicate. Each artifact gets a 2–4 sentence brief. -->
+        <!--
+        <aside class="artifact-brief">
+          <p>[What design question this artifact answers. What to notice. What was discovered.]</p>
+          <div class="thumb-grain" aria-hidden="true"></div>
+        </aside>
+        -->
+      </section>
+
+      <div class="section-divider" aria-hidden="true"></div>
+
+      <!-- Section 5: Outcome -->
+      <section class="case-study__section">
+        <div class="case-study__label" aria-hidden="true">Outcome</div>
+        <p>[Outcome with qualitative evidence where available.]</p>
+      </section>
+
+      <div class="section-divider" aria-hidden="true"></div>
+
+      <!-- Section 6: Reflection — includes philosophy throughline callout (REQ-W04) -->
+      <section class="case-study__section">
+        <div class="case-study__label" aria-hidden="true">Reflection</div>
+        <p>[Reflection paragraph.]</p>
+        <blockquote class="philosophy-callout">
+          <p>[1–3 sentences explicitly connecting this project to well-being, pressure, and meaning.]</p>
+        </blockquote>
+      </section>
+
+      <div class="section-divider" aria-hidden="true"></div>
+
+      <!-- Section 7: Writing / Documents — cross-linked from /writing/ in Phase 5 -->
+      <section class="case-study__section">
+        <div class="case-study__label" aria-hidden="true">Writing</div>
+        <p>[Attached writing/documents with inline excerpts — cross-linked from /writing/ in Phase 5.]</p>
+      </section>
+
+      <div class="section-divider" aria-hidden="true"></div>
+
+      <!-- Section 8: Project navigation footer (REQ-W08) -->
+      <!-- MAINTENANCE: if you change project order, update prev/next hrefs in all project files -->
+      <nav class="case-study-nav" aria-label="Project navigation">
+        <a class="case-study-nav__back" href="/work/">&#8592; Back to Work</a>
+        <div class="case-study-nav__siblings">
+          <a class="case-study-nav__prev" href="/work/project-2/" aria-label="Previous project">[&#8592; Previous Project]</a>
+          <a class="case-study-nav__next" href="/work/project-1/" aria-label="Next project">[Next Project &#8594;]</a>
+        </div>
+      </nav>
+
+    </article>
+  </main>
+
+  <!-- Footer injected here by js/nav.js — do not put footer markup here directly -->
+  <div id="site-footer"></div>
+
+  <!-- GSAP: use defer (NOT async) to preserve execution order -->
+  <!-- defer: executes after HTML parsing, in DOM order — correct for dependency chain -->
+  <!-- async would execute gsap/ScrollTrigger/animations.js in any order — breaks registration -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/ScrollTrigger.min.js" defer></script>
+
+  <!-- Site JS -->
+  <script src="/js/nav.js" defer></script>
+  <script src="/js/animations.js" defer></script>
+</body>
+</html>

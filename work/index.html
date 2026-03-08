@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Work — Origami Games</title>
-  <meta name="description" content="Game design and narrative projects by Origami Games.">
+  <meta name="description" content="Game design and narrative case studies by Rebecca Anisman.">
 
   <!-- Google Fonts: Montserrat Alternates (display/headings) + Source Code Pro (body/UI) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -20,13 +20,83 @@
 </head>
 <body class="page-work">
 
+  <!-- Hidden SVG grain filter — must NOT be display:none (browser won't process SVG filters if display:none) -->
+  <!-- filter: url(#grain) in CSS references this element's id -->
+  <svg width="0" height="0" style="position:absolute;overflow:hidden" aria-hidden="true" focusable="false">
+    <defs>
+      <filter id="grain" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.72" numOctaves="4" stitchTiles="stitch" result="noise"/>
+        <feColorMatrix type="saturate" values="0" in="noise" result="grayNoise"/>
+        <feBlend in="SourceGraphic" in2="grayNoise" mode="overlay" result="blended"/>
+        <feComposite in="blended" in2="SourceGraphic" operator="in"/>
+      </filter>
+    </defs>
+  </svg>
+
   <!-- Nav injected here by js/nav.js — do not put nav markup here directly -->
   <div id="site-nav"></div>
 
   <main id="main-content">
     <div class="container">
-      <h1>Work</h1>
-      <p>Project case studies — content added in Phase 3.</p>
+
+      <header class="page-header">
+        <h1 class="page-header__title">Work</h1>
+      </header>
+
+      <!-- Work card list — one card per project, single column.
+           To show a project: uncomment its <li> block below.
+           To add a 4th project: create /work/project-4/index.html (copy project-1 template),
+           then add a new <li> block following the same structure as project-1's card. -->
+      <ul class="work-list" role="list">
+
+        <li>
+          <a class="work-card" href="/work/project-1/">
+            <div class="work-card__thumb thumb-grain" aria-hidden="true"></div>
+            <div class="work-card__body">
+              <h2 class="work-card__title">[Project Title]</h2>
+              <p class="work-card__meta">
+                <span class="work-card__role">[Specific Role]</span>
+                <span class="work-card__tag">[Platform / Status]</span>
+              </p>
+              <p class="work-card__descriptor">[One evocative sentence describing this project.]</p>
+            </div>
+          </a>
+        </li>
+
+        <!--
+        <li>
+          <a class="work-card" href="/work/project-2/">
+            <div class="work-card__thumb thumb-grain" aria-hidden="true"></div>
+            <div class="work-card__body">
+              <h2 class="work-card__title">[Project 2 — placeholder]</h2>
+              <p class="work-card__meta">
+                <span class="work-card__role">[Role]</span>
+                <span class="work-card__tag">[Platform / Status]</span>
+              </p>
+              <p class="work-card__descriptor">[Descriptor]</p>
+            </div>
+          </a>
+        </li>
+        -->
+
+        <!--
+        <li>
+          <a class="work-card" href="/work/project-3/">
+            <div class="work-card__thumb thumb-grain" aria-hidden="true"></div>
+            <div class="work-card__body">
+              <h2 class="work-card__title">[Project 3 — placeholder]</h2>
+              <p class="work-card__meta">
+                <span class="work-card__role">[Role]</span>
+                <span class="work-card__tag">[Platform / Status]</span>
+              </p>
+              <p class="work-card__descriptor">[Descriptor]</p>
+            </div>
+          </a>
+        </li>
+        -->
+
+      </ul>
+
     </div>
   </main>
 
