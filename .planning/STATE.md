@@ -99,5 +99,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-08
-Stopped at: Completed 03-02-PLAN.md — Phase 3 CSS components complete. All work card and case study styles in place. Next: execute 03-03-PLAN.md (nav.js fix + home page href fix + visual verification checkpoint).
+Stopped at: Completed 03-01-PLAN.md — Work Index HTML, 8-section case study template, stub shells, nav.js startsWith matching, home page hrefs committed. SUMMARY created. Next: 03-02-PLAN.md (CSS components for work index + case study).
 Resume file: None
