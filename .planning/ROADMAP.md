@@ -271,7 +271,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 |-------|----------------|--------|-----------|
 | 1. Foundation Scaffold | 4/4 | Complete | 2026-02-25 |
 | 2. Home / Landing | 3/3 | Complete | 2026-02-27 |
-| 3. Work Index + First Case Study | 0/TBD | Not started | - |
+| 3. Work Index + First Case Study | 2/3 | In Progress|  |
 | 4. Additional Work Content | 0/TBD | Not started | - |
 | 5. Writing Section | 0/TBD | Not started | - |
 | 6. Retrospectives / Earlier Work | 0/TBD | Not started | - |

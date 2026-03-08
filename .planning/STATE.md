@@ -25,12 +25,12 @@ pressure and meaning — before reading a single case study.
 
 ## Current Position
 
-Phase: 2 of 10 (Home / Landing) — COMPLETE
-Plan: 3 of 3 in current phase — COMPLETE
-Status: Phase 2 complete — all 3 plans executed; home page verified above fold, cards, hover, footer, mobile 375px; origami personality layer added and refined
-Last activity: 2026-02-27 — Executed 02-03-PLAN.md: visual verification checkpoint approved, origami personality added (terracotta accents, diamond geometry, card left borders), hero corner triangle removed per user feedback
+Phase: 3 of 10 (Work Index + First Case Study) — IN PROGRESS
+Plan: 2 of 3 in current phase — COMPLETE
+Status: Phase 3 Plans 01 and 02 executed — work/index.html, case study template (project-1), stub pages (project-2, project-3), and all Phase 3 CSS components complete
+Last activity: 2026-03-08 — Executed 03-02-PLAN.md: verified all Phase 3 CSS components in components.css; added missing .artifact-brief class; all REQ-W01/W02/W03/W04/W06/W08 CSS satisfied
 
-Progress: [██░░░░░░░░] 20% (Phase 2 complete — 7/7 plans across phases 1-2)
+Progress: [███░░░░░░░] 25% (Phase 3 plans 01+02 complete — 9/11 plans across phases 1-3)
 
 ## Performance Metrics
 
@@ -82,6 +82,10 @@ Recent decisions affecting current work:
 - Phase 2: hero::after peach corner triangle removed — geometry without felt purpose undermines intentional-not-cluttered brand goal
 - Phase 2: Footer colophon mark = three terracotta ◆ glyphs via ::before content — visible, resolution-independent, no image needed
 - Phase 2: Philosophy statement gets 3px terracotta left border (pull-quote style) — approved as intentional brand touch
+- Phase 3: .work-card hover uses ::after opacity shadow pattern (same as .project-card) — GPU composited, no repaint
+- Phase 3: .philosophy-callout replicates .hero__statement visual DNA (border-left + italic + Montserrat) — intentional brand throughline
+- Phase 3: Section labels use Source Code Pro (body font) not Montserrat — game-design-document aesthetic
+- Phase 3: .artifact-brief HTML-commented by default in case study template — uncomment only when real artifact is present
 
 ### Pending Todos
 
@@ -94,6 +98,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-27
-Stopped at: Completed 02-03-PLAN.md — Phase 2 complete. Home page verified above fold, cards, hover, footer, mobile 375px. Origami personality layer in place. Next: execute Phase 3 (Work Index + First Case Study) — run /gsd:execute-phase 3 to plan and begin.
+Last session: 2026-03-08
+Stopped at: Completed 03-02-PLAN.md — Phase 3 CSS components complete. All work card and case study styles in place. Next: execute 03-03-PLAN.md (nav.js fix + home page href fix + visual verification checkpoint).
 Resume file: None
