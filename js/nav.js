@@ -38,9 +38,11 @@
   injectInclude('site-nav', '/_includes/nav.html', 'navReady');
   injectInclude('site-footer', '/_includes/footer.html', 'footerReady');
 
-  // Set active state on nav links after nav is injected
-  // Compares window.location.pathname to each link's href attribute
-  // Sets aria-current="page" and class="is-active" on the matching link
+  // Set active state on nav links after nav is injected.
+  // Compares window.location.pathname to each link's href attribute.
+  // Uses startsWith for section links so sub-pages (e.g. /work/project-1/)
+  // activate the parent section link (e.g. /work/).
+  // Guard: the root '/' link only matches exactly to avoid matching every page.
   document.addEventListener('navReady', function () {
     var currentPath = window.location.pathname;
     var links = document.querySelectorAll('.site-nav__link');
@@ -52,8 +54,16 @@
       var linkPath = linkHref.replace(/\/$/, '') || '/';
       var pagePath = currentPath.replace(/\/$/, '') || '/';
 
-      // Exact match only — prevents /work matching /work/project-name
-      if (linkPath === pagePath) {
+      var isMatch = false;
+      if (linkPath === '/') {
+        // Root: exact match only — avoids matching every page
+        isMatch = (pagePath === '/');
+      } else {
+        // Section links: match exact OR sub-pages (e.g. /work matches /work/project-1)
+        isMatch = (pagePath === linkPath) || currentPath.startsWith(linkHref);
+      }
+
+      if (isMatch) {
         link.setAttribute('aria-current', 'page');
         link.classList.add('is-active');
       }
