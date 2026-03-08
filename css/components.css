@@ -556,7 +556,7 @@
 }
 
 .work-card__body {
-  padding: var(--space-5) var(--space-6);
+  padding: var(--space-5) var(--space-6) var(--space-5) var(--space-8);
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
@@ -806,4 +806,30 @@
 
 .case-study-nav__next {
   margin-left: auto;
+}
+
+/* ── Artifact Brief (REQ-W06) ─────────────────────── */
+
+/* Used ONLY when a prototype or artifact adds information that screenshots cannot convey.
+   REQ-W06: each artifact accompanied by a 2–4 sentence brief (design question,
+   what to notice, discovery made). HTML-commented out by default in case study template —
+   uncomment only when a real artifact is present. */
+
+.artifact-brief {
+  background-color: var(--color-bg-inset);
+  border-radius: var(--radius-base);
+  padding: var(--space-6);
+  margin: var(--space-8) 0;
+}
+
+.artifact-brief p {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  line-height: var(--leading-normal);
+  margin: 0 0 var(--space-4);
+}
+
+.artifact-brief p:last-of-type {
+  margin-bottom: 0;
 }
