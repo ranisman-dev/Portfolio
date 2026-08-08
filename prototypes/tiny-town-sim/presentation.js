@@ -85,7 +85,8 @@ function renderMind() {
 
   const memories = m.memories.slice().reverse().slice(0, 8).map(mem => {
     const ev = world.events.find(e => e.id === mem.eventId);
-    return `<li>#${mem.eventId} ${ev ? describeEvent(ev) : '(forgotten)'} <span class="belief-source">importance ${mem.importance.toFixed(2)}</span></li>`;
+    const strength = Sim.memoryStrength(mem, world.tick);
+    return `<li>#${mem.eventId} ${ev ? describeEvent(ev) : '(forgotten)'} <span class="belief-source">still felt at ${strength.toFixed(2)}</span></li>`;
   }).join('') || '<li class="empty">Nothing witnessed yet.</li>';
 
   const relEntries = Object.entries(m.relationships).map(([otherId, r]) => {
@@ -93,7 +94,7 @@ function renderMind() {
     return `<li><strong>${otherName}</strong> — trust ${r.trust.toFixed(2)}, affection ${r.affection.toFixed(2)}, fear ${r.fear.toFixed(2)}, grievance ${r.grievance.toFixed(2)}</li>`;
   }).join('') || '<li class="empty">No opinions formed yet.</li>';
 
-  const goalItem = (g) => `<li><strong>${g.type}</strong>${g.target ? ` → ${world.agents[g.target] ? world.agents[g.target].name : g.target}` : ''} (priority ${g.priority.toFixed(2)})</li>`;
+  const goalItem = (g) => `<li><strong>${g.type}</strong>${g.target ? ` → ${world.agents[g.target] ? world.agents[g.target].name : g.target}` : ''} (priority ${g.priority.toFixed(2)})${g.reason ? ` <span class="belief-source">dormant — set aside for ${g.reason}</span>` : ''}</li>`;
   const goalsCurrent = m.goals.current.map(goalItem).join('') || '<li class="empty">None right now.</li>';
   const goalsFuture = m.goals.future.map(goalItem).join('') || '<li class="empty">None yet.</li>';
 

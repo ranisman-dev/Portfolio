@@ -266,16 +266,34 @@ function activeEmotionIntensity(agent, emotion, targetId, currentTick) {
     .reduce((sum, e) => sum + e.intensity * Math.pow(0.5, (currentTick - e.tick) / EMOTION_HALFLIFE_TICKS), 0);
 }
 
+// How strongly a memory is still felt right now. More important memories
+// (bigger appraisal impact when they happened) linger far longer — a shrug
+// fades in a handful of actions, a betrayal can still be sharp dozens of
+// actions later. Computed live from age rather than decayed on a schedule,
+// same approach as activeEmotionIntensity.
+function memoryStrength(mem, currentTick) {
+  const halflife = 3 + mem.importance * 35;
+  return mem.importance * Math.pow(0.5, Math.max(0, currentTick - mem.tick) / halflife);
+}
+
+function memoryStrengthForEvent(agent, eventId, currentTick) {
+  const mem = agent.mind.memories.find(m => m.eventId === eventId);
+  return mem ? memoryStrength(mem, currentTick) : 0; // no memory record left = genuinely forgotten
+}
+
 function addMemory(agent, eventId, tick, importance) {
+  // Trivial old memories quietly drop out as new ones form — nothing sits
+  // around forever just because it happened once.
+  agent.mind.memories = agent.mind.memories.filter(m => memoryStrength(m, tick) > 0.03);
   agent.mind.memories.push({ id: `${agent.id}-mem${eventId}`, eventId, tick, importance });
   if (agent.mind.memories.length > 40) agent.mind.memories.shift();
 }
 
-function upsertGoal(agent, type, targetId, priority, tick, bucket = 'current') {
+function upsertGoal(agent, type, targetId, priority, tick, bucket = 'current', extra = {}) {
   const list = agent.mind.goals[bucket];
   const existing = list.find(g => g.type === type && g.target === targetId);
-  if (existing) { existing.priority = Math.max(existing.priority, priority); existing.tick = tick; return existing; }
-  const goal = { id: `${agent.id}-goal-${type}-${targetId}-${tick}`, type, target: targetId, priority, tick };
+  if (existing) { existing.priority = Math.max(existing.priority, priority); existing.tick = tick; Object.assign(existing, extra); return existing; }
+  const goal = { id: `${agent.id}-goal-${type}-${targetId}-${tick}`, type, target: targetId, priority, tick, ...extra };
   list.push(goal);
   return goal;
 }
@@ -284,31 +302,69 @@ function resolveGoal(agent, type, targetId) {
   agent.mind.goals.current = agent.mind.goals.current.filter(g => !(g.type === type && g.target === targetId));
 }
 
-function closeGoal(witness, type, targetId, tick, reason) {
+// A settled debt is just gone. A merely-let-go one isn't forgotten, only
+// dormant — it moves to `future` carrying the reason it was suppressed, so
+// it can come back if that reason reverses.
+function closeGoalSettled(witness, type, targetId, tick, reason) {
   const had = witness.mind.goals.current.some(g => g.type === type && g.target === targetId);
   if (!had) return;
   resolveGoal(witness, type, targetId);
   witness.mind.log.push({ tick, trigger: `goal ${type} → ${targetId}`, considered: [], chose: `let it go — ${reason}` });
 }
 
+function goDormant(witness, goal, tick, reason, logReason) {
+  witness.mind.goals.current = witness.mind.goals.current.filter(g => g !== goal);
+  witness.mind.goals.future.push({ ...goal, reason, tick });
+  witness.mind.log.push({ tick, trigger: `goal ${goal.type} → ${goal.target}`, considered: [], chose: `let it go for now — ${logReason}` });
+}
+
+function resurfaceGoal(witness, dormant, tick) {
+  witness.mind.goals.future = witness.mind.goals.future.filter(g => g !== dormant);
+  const rel = relOf(witness, dormant.target);
+  upsertGoal(witness, dormant.type, dormant.target, rel.grievance, tick, 'current', { sourceEventId: dormant.sourceEventId });
+  const targetName = dormant.target;
+  witness.mind.log.push({
+    tick,
+    trigger: `goal ${dormant.type} → ${dormant.target}`,
+    considered: [],
+    chose: `remembered the old debt — doesn't ${targetName} still owe me something?`,
+  });
+}
+
 // Goals are sticky by default — one gift or one scare doesn't erase them. They
 // close only when a relationship dimension actually crosses a real threshold:
 // the debt is genuinely settled, the witness likes the target too much now to
 // bother pursuing it, or fear of the target outweighs whatever boldness they
-// have left to keep at it. Called any time a relationship with the goal's
-// target shifts, not just on the event that created the goal.
+// have left to keep at it. Letting go from affection or fear doesn't erase the
+// debt, just suppresses acting on it — it can resurface later if that
+// suppressing condition reverses and the underlying memory hasn't faded past
+// the point of being genuinely forgotten. Called any time a relationship with
+// the target shifts, not just on the event that created the goal.
 function reassessGoals(witness, targetId, tick) {
   if (!targetId || !witness.mind.relationships[targetId]) return;
   const rel = relOf(witness, targetId);
-  const hasGoal = witness.mind.goals.current.some(g => g.type === 'SeekRestitution' && g.target === targetId);
-  if (!hasGoal) return;
 
-  if (rel.grievance < 0.15) {
-    closeGoal(witness, 'SeekRestitution', targetId, tick, 'the debt is settled');
-  } else if (rel.affection > 0.6) {
-    closeGoal(witness, 'SeekRestitution', targetId, tick, 'likes them too much now to bother');
-  } else if (rel.fear > 0.6 && witness.mind.personality.boldness < 0.5) {
-    closeGoal(witness, 'SeekRestitution', targetId, tick, 'too scared of them to pursue it');
+  const goal = witness.mind.goals.current.find(g => g.type === 'SeekRestitution' && g.target === targetId);
+  if (goal) {
+    if (rel.grievance < 0.15) {
+      closeGoalSettled(witness, 'SeekRestitution', targetId, tick, 'the debt is settled');
+    } else if (rel.affection > 0.6) {
+      goDormant(witness, goal, tick, 'affection', 'likes them too much now to bother');
+    } else if (rel.fear > 0.6 && witness.mind.personality.boldness < 0.5) {
+      goDormant(witness, goal, tick, 'fear', 'too scared of them to pursue it');
+    }
+  }
+
+  const dormant = witness.mind.goals.future.find(g => g.type === 'SeekRestitution' && g.target === targetId);
+  if (dormant) {
+    const stillRemembered = !dormant.sourceEventId || memoryStrengthForEvent(witness, dormant.sourceEventId, tick) > 0.1;
+    if (!stillRemembered) {
+      // Genuinely forgotten — no decision was made, so nothing goes in the log.
+      witness.mind.goals.future = witness.mind.goals.future.filter(g => g !== dormant);
+    } else if (rel.grievance > 0.15) {
+      const reversed = (dormant.reason === 'affection' && rel.affection < 0.3) || (dormant.reason === 'fear' && rel.fear < 0.25);
+      if (reversed) resurfaceGoal(witness, dormant, tick);
+    }
   }
 }
 
@@ -395,7 +451,7 @@ function applyAppraisal(world, witness, event, appraisal) {
       pushEmotion(witness, 'Fear', event.actor, -impact * 0.8, event.tick);
     }
     pushEmotion(witness, appraisal.isVictim ? 'Anger' : 'Indignation', event.actor, -impact, event.tick);
-    if (appraisal.isVictim) upsertGoal(witness, 'SeekRestitution', event.actor, -impact, event.tick);
+    if (appraisal.isVictim) upsertGoal(witness, 'SeekRestitution', event.actor, -impact, event.tick, 'current', { sourceEventId: event.id });
   } else {
     // A kind act is still a kind act at face value (trust/affection rise above already
     // reflect that) — but whether it settles the score is gated by how forgiving this
@@ -541,6 +597,7 @@ const Sim = {
   createWorld,
   performAction,
   getAgent,
+  memoryStrength,
 };
 
 if (typeof window !== 'undefined') window.Sim = Sim;
