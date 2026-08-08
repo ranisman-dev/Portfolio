@@ -392,11 +392,11 @@ function perceiveEvent(world, witnessId, event) {
 
   if (event.verb === 'Tell' && event.data.targetId === witnessId) {
     const trust = relOf(witness, event.actor).trust;
-    applyClaimBelief(witness, event.actor, event.data.claim, 0.4 + trust * 0.5, `told:${event.actor}`, event.tick, event.id);
+    applyClaimBelief(world, witness, event.actor, event.data.claim, 0.4 + trust * 0.5, `told:${event.actor}`, event.tick, event.id);
   } else if (event.verb === 'Tell') {
     // overheard secondhand — weaker confidence than being told directly
     const trust = relOf(witness, event.actor).trust;
-    applyClaimBelief(witness, event.actor, event.data.claim, 0.2 + trust * 0.3, `overheard:${event.actor}`, event.tick, event.id);
+    applyClaimBelief(world, witness, event.actor, event.data.claim, 0.2 + trust * 0.3, `overheard:${event.actor}`, event.tick, event.id);
   }
 
   if (!witness.mind.reactedEventIds.has(event.id) && reactionDepth < MAX_REACTION_DEPTH) {
@@ -466,20 +466,74 @@ function applyAppraisal(world, witness, event, appraisal) {
   reassessGoals(witness, event.actor, event.tick);
 }
 
-function applyClaimBelief(witness, tellerId, claim, confidence, source, tick, eventId) {
+// An agent has privileged, always-certain ground truth about two things: what
+// they themselves did, and what was done to them directly — not omniscience
+// about the wider world, just self-knowledge nobody needs telepathy for.
+// "Mara is dead" is refutable by Mara simply because she's alive to hear it,
+// or by anyone standing right next to her seeing she plainly isn't. "Ives
+// stole from Mara" is refutable by either of them if the event ledger holds
+// no such event — they were the ones who'd know.
+function checkContradiction(world, witness, claim) {
+  const subjectAgent = world.agents[claim.subject];
+
+  if (claim.predicate === 'is_dead') {
+    if (!subjectAgent) return false;
+    if (claim.subject === witness.id) return subjectAgent.alive;
+    return subjectAgent.alive && coLocated(world, witness.id, claim.subject);
+  }
+
+  if (claim.predicate === 'stole_from' || claim.predicate === 'attacked') {
+    const selfKnowledge = witness.id === claim.subject || witness.id === claim.victim;
+    if (!selfKnowledge) return false;
+    const actuallyHappened = world.events.some(ev =>
+      ev.actor === claim.subject && ev.data && ev.data.targetId === claim.victim &&
+      ((claim.predicate === 'stole_from' && ev.verb === 'Take' && ev.data.consented === false) ||
+       (claim.predicate === 'attacked' && ev.verb === 'Attack'))
+    );
+    return !actuallyHappened;
+  }
+
+  return false; // opinions (is_trustworthy/is_dangerous) aren't the kind of thing ground truth settles
+}
+
+// Being caught in a lie doesn't damage trust in whoever the lie was about —
+// it damages trust in whoever told it. How much depends on how much this
+// person values Honesty in the first place.
+function reactToBeingLiedTo(witness, tellerId, claim, tick) {
+  if (tellerId === witness.id) return;
+  const honestyWeight = getValueWeight(witness, 'Honesty');
+  const severity = clamp(0.5 + honestyWeight * 0.4, 0.15, 0.95);
+
+  const rel = relOf(witness, tellerId);
+  rel.trust = clamp(rel.trust - 0.4 * severity, 0, 1);
+  rel.affection = clamp(rel.affection - 0.3 * severity, -1, 1);
+  rel.grievance = clamp(rel.grievance + 0.6 * severity, 0, 5);
+  pushEmotion(witness, 'Indignation', tellerId, severity, tick);
+  reassessGoals(witness, tellerId, tick);
+}
+
+function applyClaimBelief(world, witness, tellerId, claim, confidence, source, tick, eventId) {
+  const contradicted = checkContradiction(world, witness, claim);
+  const effectiveConfidence = contradicted ? 0 : confidence;
+
   witness.mind.beliefs.push({
     id: `${witness.id}-claim${eventId}`,
     subject: claim.subject,
     predicate: claim.predicate,
     data: claim,
-    confidence: clamp(confidence, 0, 1),
-    source,
+    confidence: clamp(effectiveConfidence, 0, 1),
+    source: contradicted ? `${source} (known false)` : source,
     tick,
     eventId,
   });
 
+  if (contradicted) {
+    reactToBeingLiedTo(witness, tellerId, claim, tick);
+    return;
+  }
+
   if (confidence < 0.35) return; // too little trust in the source to act on it
-  if (claim.subject === witness.id) return; // hearing gossip about yourself doesn't need a relationship-with-self
+  if (claim.subject === witness.id) return; // hearing unverifiable opinion about yourself doesn't need a relationship-with-self
 
   if (claim.predicate === 'stole_from' || claim.predicate === 'attacked') {
     const rel = relOf(witness, claim.subject);
