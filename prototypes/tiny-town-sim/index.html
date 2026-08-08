@@ -45,6 +45,14 @@
       <h2>Inspect a mind</h2>
       <div id="mind-panel" class="mind-panel"></div>
     </section>
+
+    <section class="panel">
+      <h2>Debug report</h2>
+      <p class="hint">If something looks wrong, generate a full dump of the event log and every NPC's complete mind (untruncated) — paste it back to Claude.</p>
+      <button id="generate-report-btn" type="button">Generate report</button>
+      <p id="copy-status" class="action-result"></p>
+      <textarea id="debug-output" class="debug-output" readonly style="display:none;"></textarea>
+    </section>
   </main>
 </div>
 

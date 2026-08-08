@@ -123,6 +123,98 @@ function renderAll() {
   renderMind();
 }
 
+// ── Debug report — full, untruncated state to paste back to Claude ──
+
+function serializeWorld() {
+  // mind.reactedEventIds is a Set, which JSON.stringify silently drops.
+  return JSON.parse(JSON.stringify(world, (key, value) => (value instanceof Set ? Array.from(value) : value)));
+}
+
+function buildDebugReport() {
+  const lines = [];
+  lines.push(`Tiny Town debug report — tick ${world.tick}, ${new Date().toISOString()}`);
+  lines.push('');
+  lines.push(`=== EVENT LOG (${world.events.length}) ===`);
+  world.events.forEach(ev => {
+    const actor = Sim.getAgent(world, ev.actor).name;
+    lines.push(`#${ev.id} [tick ${ev.tick}] ${actor} ${describeEvent(ev)}${ev.causedBy ? ` (reaction to #${ev.causedBy})` : ''}`);
+  });
+
+  Object.values(world.agents).forEach(a => {
+    lines.push('');
+    if (a.isPlayer) {
+      lines.push(`=== ${a.name} (player) ===`);
+      lines.push(`location: ${a.location} | hp: ${a.health} | bread ${a.inventory.bread}, gold ${a.inventory.gold}`);
+      return;
+    }
+    const m = a.mind;
+    lines.push(`=== ${a.name} — full mind ===`);
+    lines.push(`location: ${a.location} | hp: ${a.health} (${a.alive ? 'alive' : 'down'}) | bread ${a.inventory.bread}, gold ${a.inventory.gold}`);
+    lines.push(`personality: ${Object.entries(m.personality).map(([k, v]) => `${k}=${v.toFixed(2)}`).join(', ')}`);
+    lines.push(`values: ${m.values.length ? m.values.map(v => `${v.value}=${v.weight >= 0 ? '+' : ''}${v.weight.toFixed(2)}`).join(', ') : '(none)'}`);
+    lines.push(`needs: ${Object.entries(m.needs).map(([k, v]) => `${k}=${v.toFixed(2)}`).join(', ')}`);
+
+    const liveEmotions = m.emotions.map(e => {
+      const eff = e.intensity * Math.pow(0.5, (world.tick - e.tick) / 6);
+      const targetName = world.agents[e.target] ? world.agents[e.target].name : e.target;
+      return `${e.emotion}->${targetName}=${eff.toFixed(2)}`;
+    });
+    lines.push(`emotions (live): ${liveEmotions.join(', ') || '(none)'}`);
+
+    lines.push(`beliefs (${m.beliefs.length}):`);
+    m.beliefs.forEach(b => {
+      const label = b.predicate.startsWith('did:')
+        ? `believes ${b.subject} performed ${b.predicate.slice(4)} (#${b.eventId})`
+        : (Sim.PREDICATE_LABELS[b.predicate] ? Sim.PREDICATE_LABELS[b.predicate](b.data) : `${b.subject} ${b.predicate}`);
+      lines.push(`  - [${Math.round(b.confidence * 100)}%] ${label} — via ${b.source}, tick ${b.tick}`);
+    });
+
+    lines.push(`memories (${m.memories.length}):`);
+    m.memories.forEach(mem => {
+      lines.push(`  - #${mem.eventId} still felt at ${Sim.memoryStrength(mem, world.tick).toFixed(3)} (formed tick ${mem.tick}, importance ${mem.importance.toFixed(2)})`);
+    });
+
+    lines.push(`relationships:`);
+    Object.entries(m.relationships).forEach(([id, r]) => {
+      const name = world.agents[id] ? world.agents[id].name : id;
+      lines.push(`  - ${name}: trust=${r.trust.toFixed(2)} affection=${r.affection.toFixed(2)} fear=${r.fear.toFixed(2)} grievance=${r.grievance.toFixed(2)}`);
+    });
+
+    const goalStr = (g) => `${g.type}->${world.agents[g.target] ? world.agents[g.target].name : g.target}(p${g.priority.toFixed(2)})${g.reason ? `[dormant:${g.reason}]` : ''}`;
+    lines.push(`goals current: ${m.goals.current.map(goalStr).join(', ') || '(none)'}`);
+    lines.push(`goals future: ${m.goals.future.map(goalStr).join(', ') || '(none)'}`);
+
+    lines.push(`decision log (${m.log.length}):`);
+    m.log.forEach(d => {
+      lines.push(`  - tick ${d.tick} | ${d.trigger} | considered: ${d.considered.join(', ') || '(n/a)'} | chose: ${d.chose}`);
+    });
+  });
+
+  lines.push('');
+  lines.push('=== RAW WORLD STATE (JSON) ===');
+  lines.push(JSON.stringify(serializeWorld(), null, 2));
+
+  return lines.join('\n');
+}
+
+function generateReport() {
+  const output = el('debug-output');
+  output.value = buildDebugReport();
+  output.style.display = 'block';
+  output.focus();
+  output.select();
+
+  const status = el('copy-status');
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(output.value).then(
+      () => { status.textContent = 'Copied to clipboard — paste it back to Claude.'; },
+      () => { status.textContent = 'Report generated below — select all and copy.'; }
+    );
+  } else {
+    status.textContent = 'Report generated below — select all and copy.';
+  }
+}
+
 // ── Player command input ────────────────────────────────────
 
 function submitCommand(e) {
@@ -160,7 +252,15 @@ function renderExamples() {
 function init() {
   renderExamples();
   el('command-form').addEventListener('submit', submitCommand);
-  el('reset-btn').addEventListener('click', () => { world = Sim.createWorld(); el('action-result').textContent = ''; renderAll(); });
+  el('reset-btn').addEventListener('click', () => {
+    world = Sim.createWorld();
+    el('action-result').textContent = '';
+    el('debug-output').style.display = 'none';
+    el('debug-output').value = '';
+    el('copy-status').textContent = '';
+    renderAll();
+  });
+  el('generate-report-btn').addEventListener('click', generateReport);
   el('world-panel').addEventListener('click', (e) => {
     const id = e.target.getAttribute('data-inspect');
     if (id) { inspectedId = id; renderMind(); }
