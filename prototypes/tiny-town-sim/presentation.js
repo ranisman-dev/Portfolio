@@ -203,6 +203,7 @@ function generateReport() {
   output.style.display = 'block';
   output.focus();
   output.select();
+  output.scrollTop = 0; // select() jumps to the end; the readable summary is at the top
 
   const status = el('copy-status');
   if (navigator.clipboard && navigator.clipboard.writeText) {
