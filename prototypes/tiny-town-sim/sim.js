@@ -10,6 +10,14 @@ const LOCATIONS = {
 
 const VERBS = ['Take', 'Give', 'Attack', 'Tell', 'Move'];
 
+// Global value bank. An agent only carries a handful of these with a weight;
+// absence from an agent's list means indifference, not opposition — a
+// negative weight is how an agent is actively against something.
+const VALUES = [
+  'Honesty', 'Justice', 'Loyalty', 'Wealth', 'Safety', 'Compassion',
+  'Tradition', 'Autonomy', 'Status', 'Community', 'Pleasure', 'Curiosity', 'Honor',
+];
+
 const PREDICATE_LABELS = {
   stole_from: (c) => `${c.subject} stole ${c.item || 'something'} from ${c.victim}`,
   attacked:   (c) => `${c.subject} attacked ${c.victim}`,
@@ -18,27 +26,35 @@ const PREDICATE_LABELS = {
   is_dangerous:   (c) => `${c.subject} is dangerous`,
 };
 
+const EMOTION_HALFLIFE_TICKS = 6;
+
 function makeAgent(id, name, opts = {}) {
+  const isPlayer = !!opts.isPlayer;
   return {
     id,
     name,
-    isPlayer: !!opts.isPlayer,
+    isPlayer,
     location: opts.location || 'square',
     health: 100,
     alive: true,
     inventory: { bread: 0, gold: 0, ...(opts.inventory || {}) },
-    traits: {
-      courage: 0.5,       // reduces fear penalty when choosing risky reactions
-      honesty: 0.9,        // chance a report is truthful vs. fabricated
-      dislikeTheft: 0.6,   // how much theft offends this agent
-      empathy: 0.5,        // how much they act on behalf of others they like
-      ...(opts.traits || {}),
-    },
-    mind: opts.isPlayer ? null : {
-      beliefs: [],          // {id, subject, predicate, data, confidence, source, tick}
-      relationships: {},    // otherId -> {trust, affection, fear, grievance}
+    mind: isPlayer ? null : {
+      personality: {
+        openness: 0.5, conscientiousness: 0.5, extraversion: 0.5,
+        agreeableness: 0.5, neuroticism: 0.5,
+        boldness: 0.5, // additional behavioral trait, beyond OCEAN — added because risk-taking in
+                        // confront/retreat decisions isn't well-separated from Neuroticism alone
+        ...(opts.personality || {}),
+      },
+      values: opts.values || [], // [{ value: 'Justice', weight: 0.7 }, ...] — weight in [-1, 1]
+      beliefs: [],                // propositional: {id, subject, predicate, data, confidence, source, tick, eventId}
+      needs: { safety: 1, sustenance: 1, belonging: 0.6, ...(opts.needs || {}) },
+      emotions: [],                // transient: {emotion, target, intensity, tick} — decays, doesn't persist like relationships
+      relationships: {},           // otherId -> {trust, affection, fear, grievance}
+      memories: [],                 // episodic pointers: {id, eventId, tick, importance}
+      goals: { current: [], future: [] },
       reactedEventIds: new Set(),
-      log: [],               // human-readable decision trail, for the mind inspector
+      log: [],                      // human-readable decision trail, for the mind inspector
     },
   };
 }
@@ -50,14 +66,40 @@ function relOf(agent, otherId) {
   return agent.mind.relationships[otherId];
 }
 
+function getValueWeight(agent, valueName) {
+  const v = agent.mind.values.find(v => v.value === valueName);
+  return v ? v.weight : 0; // absent = indifferent, not opposed
+}
+
 function createWorld() {
   const agents = {
     player: makeAgent('player', 'You', { isPlayer: true, inventory: { bread: 0, gold: 5 } }),
-    mara:   makeAgent('mara', 'Mara', { inventory: { bread: 6, gold: 3 }, traits: { dislikeTheft: 0.9, courage: 0.3, honesty: 0.95 } }),
-    ives:   makeAgent('ives', 'Ives', { inventory: { bread: 0, gold: 1 }, traits: { dislikeTheft: 0.2, courage: 0.7, honesty: 0.4 } }),
-    tomas:  makeAgent('tomas', 'Tomas', { inventory: { bread: 1, gold: 2 }, traits: { dislikeTheft: 0.4, courage: 0.5, honesty: 0.55 } }),
-    elena:  makeAgent('elena', 'Elena', { inventory: { bread: 1, gold: 4 }, traits: { dislikeTheft: 0.7, courage: 0.8, empathy: 0.8, honesty: 0.9 } }),
-    garrick:makeAgent('garrick', 'Garrick', { inventory: { bread: 0, gold: 6 }, traits: { dislikeTheft: 0.8, courage: 0.9, empathy: 0.4, honesty: 0.85 } }),
+
+    mara: makeAgent('mara', 'Mara', {
+      inventory: { bread: 6, gold: 3 },
+      personality: { conscientiousness: 0.8, agreeableness: 0.55, neuroticism: 0.4, boldness: 0.35 },
+      values: [{ value: 'Justice', weight: 0.7 }, { value: 'Honesty', weight: 0.6 }, { value: 'Community', weight: 0.4 }],
+    }),
+    ives: makeAgent('ives', 'Ives', {
+      inventory: { bread: 0, gold: 1 },
+      personality: { conscientiousness: 0.3, agreeableness: 0.35, extraversion: 0.7, boldness: 0.7 },
+      values: [{ value: 'Pleasure', weight: 0.6 }, { value: 'Autonomy', weight: 0.5 }, { value: 'Honesty', weight: -0.3 }],
+    }),
+    tomas: makeAgent('tomas', 'Tomas', {
+      inventory: { bread: 1, gold: 2 },
+      personality: { agreeableness: 0.4, neuroticism: 0.45, boldness: 0.5 },
+      values: [{ value: 'Status', weight: 0.5 }, { value: 'Wealth', weight: 0.5 }, { value: 'Tradition', weight: 0.3 }],
+    }),
+    elena: makeAgent('elena', 'Elena', {
+      inventory: { bread: 1, gold: 4 },
+      personality: { openness: 0.6, conscientiousness: 0.6, agreeableness: 0.75, neuroticism: 0.3, boldness: 0.75 },
+      values: [{ value: 'Compassion', weight: 0.8 }, { value: 'Justice', weight: 0.6 }, { value: 'Community', weight: 0.5 }],
+    }),
+    garrick: makeAgent('garrick', 'Garrick', {
+      inventory: { bread: 0, gold: 6 },
+      personality: { conscientiousness: 0.8, neuroticism: 0.25, boldness: 0.85 },
+      values: [{ value: 'Justice', weight: 0.7 }, { value: 'Honesty', weight: 0.7 }, { value: 'Loyalty', weight: 0.5 }],
+    }),
   };
 
   // Seed one asymmetric relationship so "Tomas dislikes Mara" scenarios are
@@ -168,6 +210,10 @@ function applyEffects(world, actor, verb, params) {
       const qty = Math.min(params.quantity || 1, target.inventory[item] || 0);
       target.inventory[item] -= qty;
       actor.inventory[item] = (actor.inventory[item] || 0) + qty;
+      if (!target.isPlayer && item === 'bread' && target.inventory.bread === 0) {
+        adjustNeed(target, 'sustenance', -0.4);
+        upsertGoal(target, 'ReplenishFood', null, 0.4, world.tick, 'future');
+      }
       return { location: actor.location, data: { targetId: target.id, item, quantity: qty, consented: false } };
     }
     case 'Give': {
@@ -183,6 +229,7 @@ function applyEffects(world, actor, verb, params) {
       const damage = 15 + Math.floor(Math.random() * 15);
       target.health = Math.max(0, target.health - damage);
       if (target.health === 0) target.alive = false;
+      if (!target.isPlayer) adjustNeed(target, 'safety', -0.4);
       return { location: actor.location, data: { targetId: target.id, damage, targetSurvived: target.alive } };
     }
     case 'Tell': {
@@ -202,11 +249,49 @@ function computeWitnesses(world, event) {
   return agentsAt(world, 'square', event.actor).map(a => a.id);
 }
 
+// ── Needs / Emotions / Memories / Goals helpers ─────────────────
+
+function adjustNeed(agent, needName, delta) {
+  agent.mind.needs[needName] = clamp((agent.mind.needs[needName] ?? 1) + delta, 0, 1);
+}
+
+function pushEmotion(agent, emotion, targetId, intensity, tick) {
+  agent.mind.emotions.push({ emotion, target: targetId, intensity, tick });
+  if (agent.mind.emotions.length > 20) agent.mind.emotions.shift();
+}
+
+function activeEmotionIntensity(agent, emotion, targetId, currentTick) {
+  return agent.mind.emotions
+    .filter(e => e.emotion === emotion && e.target === targetId)
+    .reduce((sum, e) => sum + e.intensity * Math.pow(0.5, (currentTick - e.tick) / EMOTION_HALFLIFE_TICKS), 0);
+}
+
+function addMemory(agent, eventId, tick, importance) {
+  agent.mind.memories.push({ id: `${agent.id}-mem${eventId}`, eventId, tick, importance });
+  if (agent.mind.memories.length > 40) agent.mind.memories.shift();
+}
+
+function upsertGoal(agent, type, targetId, priority, tick, bucket = 'current') {
+  const list = agent.mind.goals[bucket];
+  const existing = list.find(g => g.type === type && g.target === targetId);
+  if (existing) { existing.priority = Math.max(existing.priority, priority); existing.tick = tick; return existing; }
+  const goal = { id: `${agent.id}-goal-${type}-${targetId}-${tick}`, type, target: targetId, priority, tick };
+  list.push(goal);
+  return goal;
+}
+
+function resolveGoal(agent, type, targetId) {
+  agent.mind.goals.current = agent.mind.goals.current.filter(g => !(g.type === type && g.target === targetId));
+}
+
 // ── Perception → belief formation ────────────────────────────
 
 function perceiveEvent(world, witnessId, event) {
   const witness = getAgent(world, witnessId);
   if (witness.isPlayer) return; // player forms their own beliefs implicitly via the UI/event log
+
+  const appraisal = appraiseEvent(world, witness, event);
+  addMemory(witness, event.id, event.tick, clamp(Math.abs(appraisal.impact), 0.1, 1));
 
   witness.mind.beliefs.push({
     id: `${witnessId}-ev${event.id}`,
@@ -219,8 +304,7 @@ function perceiveEvent(world, witnessId, event) {
     eventId: event.id,
   });
 
-  const appraisal = appraiseEvent(world, witness, event);
-  applyAppraisal(witness, event.actor, appraisal);
+  applyAppraisal(world, witness, event, appraisal);
 
   if (event.verb === 'Tell' && event.data.targetId === witnessId) {
     const trust = relOf(witness, event.actor).trust;
@@ -245,33 +329,57 @@ function perceiveEvent(world, witnessId, event) {
 function appraiseEvent(world, witness, event) {
   const isVictim = event.data && event.data.targetId === witness.id;
   const victimAffection = (!isVictim && event.data && event.data.targetId) ? relOf(witness, event.data.targetId).affection : 0;
+  const scale = event.data && event.data.quantity ? clamp(event.data.quantity / 2, 1, 3) : 1;
   let impact = 0;
 
-  const scale = event.data && event.data.quantity ? clamp(event.data.quantity / 2, 1, 3) : 1;
-
   if (event.verb === 'Take' && event.data.consented === false) {
-    impact = -1 * witness.traits.dislikeTheft * scale;
+    const justiceWeight = getValueWeight(witness, 'Justice');
+    const offense = clamp(0.5 + justiceWeight * 0.5, 0, 1); // absent Justice value -> moderate baseline offense
+    impact = -1 * offense * scale;
   } else if (event.verb === 'Attack') {
     impact = -1.2;
   } else if (event.verb === 'Give') {
     impact = 0.4 * scale;
   }
 
-  if (!isVictim) impact *= victimAffection > 0 ? victimAffection * witness.traits.empathy : 0.1;
+  if (!isVictim) {
+    // General willingness to care about a wrong done to someone else — driven by
+    // temperament (Agreeableness) and, on top of that, an explicit Compassion value.
+    const generalCare = clamp(0.15 + witness.mind.personality.agreeableness * 0.3 + getValueWeight(witness, 'Compassion') * 0.3, 0, 1);
+    impact *= victimAffection > 0 ? victimAffection * generalCare * 1.5 : generalCare * 0.3;
+  }
 
   return { isVictim, impact, event };
 }
 
-function applyAppraisal(witness, actorId, appraisal) {
-  if (appraisal.impact === 0) return;
-  const rel = relOf(witness, actorId);
-  rel.trust = clamp(rel.trust + appraisal.impact * 0.3, 0, 1);
-  rel.affection = clamp(rel.affection + appraisal.impact * 0.25, -1, 1);
-  if (appraisal.impact < 0) {
-    rel.grievance = clamp(rel.grievance - appraisal.impact * 0.4, 0, 5);
-    if (appraisal.event.verb === 'Attack') rel.fear = clamp(rel.fear - appraisal.impact * 0.3, 0, 1);
+function applyAppraisal(world, witness, event, appraisal) {
+  const { impact } = appraisal;
+  if (impact === 0) return;
+  const rel = relOf(witness, event.actor);
+
+  rel.trust = clamp(rel.trust + impact * 0.3, 0, 1);
+  rel.affection = clamp(rel.affection + impact * 0.25, -1, 1);
+
+  if (impact < 0) {
+    rel.grievance = clamp(rel.grievance - impact * 0.4, 0, 5);
+    if (event.verb === 'Attack') {
+      rel.fear = clamp(rel.fear - impact * 0.3 * (0.5 + witness.mind.personality.neuroticism * 0.5), 0, 1);
+      pushEmotion(witness, 'Fear', event.actor, -impact * 0.8, event.tick);
+    }
+    pushEmotion(witness, appraisal.isVictim ? 'Anger' : 'Indignation', event.actor, -impact, event.tick);
+    if (appraisal.isVictim) upsertGoal(witness, 'SeekRestitution', event.actor, -impact, event.tick);
   } else {
-    rel.grievance = clamp(rel.grievance - appraisal.impact * 0.3, 0, 5); // amends partially forgive, don't erase
+    // A kind act is still a kind act at face value (trust/affection rise above already
+    // reflect that) — but whether it settles the score is gated by how forgiving this
+    // person is (Agreeableness) and how much they expected in return (Wealth value).
+    const wealthWeight = getValueWeight(witness, 'Wealth');
+    const enoughFactor = clamp(1 - wealthWeight * 0.6, 0.25, 1.4);
+    const forgiveness = clamp(0.3 + witness.mind.personality.agreeableness * 0.7, 0.1, 1);
+    rel.grievance = clamp(rel.grievance - impact * enoughFactor * forgiveness * 0.5, 0, 5);
+    if (appraisal.isVictim) {
+      pushEmotion(witness, 'Gratitude', event.actor, impact, event.tick);
+      if (rel.grievance < 0.15) resolveGoal(witness, 'SeekRestitution', event.actor);
+    }
   }
 }
 
@@ -326,12 +434,14 @@ function decideAndAct(world, witness, event, appraisal) {
 
   const actorId = event.actor;
   const rel = relOf(witness, actorId);
+  const { boldness } = witness.mind.personality;
+  const anger = activeEmotionIntensity(witness, appraisal.isVictim ? 'Anger' : 'Indignation', actorId, event.tick);
   const candidates = [];
 
   candidates.push({ action: null, label: 'do nothing', score: 0.15 });
 
   if (coLocated(world, witness.id, actorId)) {
-    const confrontScore = (-appraisal.impact) * 0.6 * witness.traits.courage - rel.fear * (1 - witness.traits.courage);
+    const confrontScore = (-appraisal.impact) * 0.5 * boldness - rel.fear * (1 - boldness) + anger * 0.15;
     candidates.push({
       action: () => performAction(world, witness.id, 'Attack', { targetId: actorId }, { causedBy: event.id }),
       label: `confront ${actorId}`,
@@ -341,22 +451,26 @@ function decideAndAct(world, witness, event, appraisal) {
 
   const confidant = pickConfidant(world, witness, actorId, event.data.targetId);
   if (confidant && !believesDead(witness, confidant)) {
-    const truthful = Math.random() < witness.traits.honesty;
+    const honestyWeight = getValueWeight(witness, 'Honesty');
+    const truthful = Math.random() < clamp(0.5 + honestyWeight * 0.45, 0.05, 0.97);
     const subject = truthful ? actorId : pickScapegoat(world, witness, actorId);
     const predicate = event.verb === 'Attack' ? 'attacked' : 'stole_from';
     const claim = { predicate, subject, victim: event.data.targetId, item: event.data.item };
+    const generalCare = clamp(0.15 + witness.mind.personality.agreeableness * 0.3 + getValueWeight(witness, 'Compassion') * 0.3, 0, 1);
     candidates.push({
       action: () => performAction(world, witness.id, 'Tell', { targetId: confidant, claim }, { causedBy: event.id }),
       label: `tell ${confidant} about ${actorId}${truthful ? '' : ' (misattributed)'}`,
-      score: (-appraisal.impact) * 0.5 + witness.traits.empathy * 0.2,
+      score: (-appraisal.impact) * 0.5 + generalCare * 0.2,
     });
   }
 
-  if (rel.fear > 0.4) {
+  const fearEmotion = activeEmotionIntensity(witness, 'Fear', actorId, event.tick);
+  if (rel.fear > 0.3 || witness.mind.needs.safety < 0.7 || fearEmotion > 0.2) {
+    const retreatScore = (rel.fear * 0.6 + (1 - witness.mind.needs.safety) * 0.3 + fearEmotion * 0.3) * (1 - boldness);
     candidates.push({
       action: () => performAction(world, witness.id, 'Move', { toLocation: 'away' }, { causedBy: event.id }),
       label: 'retreat',
-      score: rel.fear * (1 - witness.traits.courage) * 0.8,
+      score: retreatScore,
     });
   }
 
@@ -392,6 +506,7 @@ function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
 const Sim = {
   LOCATIONS,
   VERBS,
+  VALUES,
   PREDICATE_LABELS,
   createWorld,
   performAction,
@@ -399,3 +514,4 @@ const Sim = {
 };
 
 if (typeof window !== 'undefined') window.Sim = Sim;
+if (typeof module !== 'undefined') module.exports = Sim;

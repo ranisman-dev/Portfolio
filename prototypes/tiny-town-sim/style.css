@@ -192,3 +192,13 @@ select, input[type="number"] {
 }
 .belief-source { display: block; color: #6b6960; font-size: 0.78rem; }
 .decision-log li { line-height: 1.4; }
+
+.bar-list li { display: flex; align-items: center; gap: 0.5rem; }
+.bar {
+  flex: 1;
+  height: 6px;
+  background: #2b2f42;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.bar-fill { display: block; height: 100%; background: #8fb4ff; }

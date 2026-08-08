@@ -57,26 +57,61 @@ function renderMind() {
   const agent = world.agents[inspectedId];
   const panel = el('mind-panel');
   if (!agent || agent.isPlayer) { panel.innerHTML = '<p class="empty">Select an NPC to inspect.</p>'; return; }
+  const m = agent.mind;
 
-  const beliefs = agent.mind.beliefs.slice().reverse().slice(0, 12).map(b => `
+  const personality = Object.entries(m.personality).map(([trait, v]) =>
+    `<li><strong>${trait}</strong> <span class="bar"><span class="bar-fill" style="width:${Math.round(v * 100)}%"></span></span> ${v.toFixed(2)}</li>`
+  ).join('');
+
+  const values = m.values.length
+    ? m.values.map(v => `<li><strong>${v.value}</strong> ${v.weight >= 0 ? '+' : ''}${v.weight.toFixed(2)}</li>`).join('')
+    : '<li class="empty">Holds none of the named values strongly — indifferent by default, not opposed.</li>';
+
+  const needs = Object.entries(m.needs).map(([need, v]) =>
+    `<li><strong>${need}</strong> <span class="bar"><span class="bar-fill" style="width:${Math.round(v * 100)}%"></span></span> ${v.toFixed(2)}</li>`
+  ).join('');
+
+  const emotions = m.emotions.slice().reverse().slice(0, 8).map(e => {
+    const targetName = world.agents[e.target] ? world.agents[e.target].name : e.target;
+    const effective = e.intensity * Math.pow(0.5, (world.tick - e.tick) / 6);
+    return `<li><strong>${e.emotion}</strong> toward ${targetName} — ${effective.toFixed(2)} (decaying)</li>`;
+  }).join('') || '<li class="empty">No active feelings.</li>';
+
+  const beliefs = m.beliefs.slice().reverse().slice(0, 10).map(b => `
     <li><span class="belief-conf">${Math.round(b.confidence * 100)}%</span>
       ${b.predicate.startsWith('did:') ? `believes ${b.subject} performed ${b.predicate.slice(4)} (#${b.eventId})` : Sim.PREDICATE_LABELS[b.predicate] ? Sim.PREDICATE_LABELS[b.predicate](b.data) : `${b.subject} ${b.predicate}`}
       <span class="belief-source">via ${b.source}</span>
     </li>`).join('') || '<li class="empty">No beliefs yet.</li>';
 
-  const relEntries = Object.entries(agent.mind.relationships).map(([otherId, r]) => {
+  const memories = m.memories.slice().reverse().slice(0, 8).map(mem => {
+    const ev = world.events.find(e => e.id === mem.eventId);
+    return `<li>#${mem.eventId} ${ev ? describeEvent(ev) : '(forgotten)'} <span class="belief-source">importance ${mem.importance.toFixed(2)}</span></li>`;
+  }).join('') || '<li class="empty">Nothing witnessed yet.</li>';
+
+  const relEntries = Object.entries(m.relationships).map(([otherId, r]) => {
     const otherName = world.agents[otherId] ? world.agents[otherId].name : otherId;
     return `<li><strong>${otherName}</strong> — trust ${r.trust.toFixed(2)}, affection ${r.affection.toFixed(2)}, fear ${r.fear.toFixed(2)}, grievance ${r.grievance.toFixed(2)}</li>`;
   }).join('') || '<li class="empty">No opinions formed yet.</li>';
 
-  const decisionLog = agent.mind.log.slice().reverse().slice(0, 6).map(d => `
+  const goalItem = (g) => `<li><strong>${g.type}</strong>${g.target ? ` → ${world.agents[g.target] ? world.agents[g.target].name : g.target}` : ''} (priority ${g.priority.toFixed(2)})</li>`;
+  const goalsCurrent = m.goals.current.map(goalItem).join('') || '<li class="empty">None right now.</li>';
+  const goalsFuture = m.goals.future.map(goalItem).join('') || '<li class="empty">None yet.</li>';
+
+  const decisionLog = m.log.slice().reverse().slice(0, 6).map(d => `
     <li><em>${d.trigger}</em><br>considered: ${d.considered.join(', ')}<br>chose: <strong>${d.chose}</strong></li>
   `).join('') || '<li class="empty">No decisions made yet.</li>';
 
   panel.innerHTML = `
     <h3>${agent.name}'s mind</h3>
+    <div class="mind-section"><h4>Personality (OCEAN + boldness)</h4><ul class="bar-list">${personality}</ul></div>
+    <div class="mind-section"><h4>Values</h4><ul>${values}</ul></div>
+    <div class="mind-section"><h4>Needs</h4><ul class="bar-list">${needs}</ul></div>
+    <div class="mind-section"><h4>Emotions</h4><ul>${emotions}</ul></div>
     <div class="mind-section"><h4>Beliefs</h4><ul>${beliefs}</ul></div>
+    <div class="mind-section"><h4>Memories</h4><ul>${memories}</ul></div>
     <div class="mind-section"><h4>Relationships</h4><ul>${relEntries}</ul></div>
+    <div class="mind-section"><h4>Goals — current</h4><ul>${goalsCurrent}</ul></div>
+    <div class="mind-section"><h4>Goals — future</h4><ul>${goalsFuture}</ul></div>
     <div class="mind-section"><h4>Recent decisions</h4><ul class="decision-log">${decisionLog}</ul></div>
   `;
 }
