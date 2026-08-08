@@ -284,6 +284,34 @@ function resolveGoal(agent, type, targetId) {
   agent.mind.goals.current = agent.mind.goals.current.filter(g => !(g.type === type && g.target === targetId));
 }
 
+function closeGoal(witness, type, targetId, tick, reason) {
+  const had = witness.mind.goals.current.some(g => g.type === type && g.target === targetId);
+  if (!had) return;
+  resolveGoal(witness, type, targetId);
+  witness.mind.log.push({ tick, trigger: `goal ${type} → ${targetId}`, considered: [], chose: `let it go — ${reason}` });
+}
+
+// Goals are sticky by default — one gift or one scare doesn't erase them. They
+// close only when a relationship dimension actually crosses a real threshold:
+// the debt is genuinely settled, the witness likes the target too much now to
+// bother pursuing it, or fear of the target outweighs whatever boldness they
+// have left to keep at it. Called any time a relationship with the goal's
+// target shifts, not just on the event that created the goal.
+function reassessGoals(witness, targetId, tick) {
+  if (!targetId || !witness.mind.relationships[targetId]) return;
+  const rel = relOf(witness, targetId);
+  const hasGoal = witness.mind.goals.current.some(g => g.type === 'SeekRestitution' && g.target === targetId);
+  if (!hasGoal) return;
+
+  if (rel.grievance < 0.15) {
+    closeGoal(witness, 'SeekRestitution', targetId, tick, 'the debt is settled');
+  } else if (rel.affection > 0.6) {
+    closeGoal(witness, 'SeekRestitution', targetId, tick, 'likes them too much now to bother');
+  } else if (rel.fear > 0.6 && witness.mind.personality.boldness < 0.5) {
+    closeGoal(witness, 'SeekRestitution', targetId, tick, 'too scared of them to pursue it');
+  }
+}
+
 // ── Perception → belief formation ────────────────────────────
 
 function perceiveEvent(world, witnessId, event) {
@@ -376,11 +404,10 @@ function applyAppraisal(world, witness, event, appraisal) {
     const enoughFactor = clamp(1 - wealthWeight * 0.6, 0.25, 1.4);
     const forgiveness = clamp(0.3 + witness.mind.personality.agreeableness * 0.7, 0.1, 1);
     rel.grievance = clamp(rel.grievance - impact * enoughFactor * forgiveness * 0.5, 0, 5);
-    if (appraisal.isVictim) {
-      pushEmotion(witness, 'Gratitude', event.actor, impact, event.tick);
-      if (rel.grievance < 0.15) resolveGoal(witness, 'SeekRestitution', event.actor);
-    }
+    if (appraisal.isVictim) pushEmotion(witness, 'Gratitude', event.actor, impact, event.tick);
   }
+
+  reassessGoals(witness, event.actor, event.tick);
 }
 
 function applyClaimBelief(witness, tellerId, claim, confidence, source, tick, eventId) {
@@ -407,10 +434,13 @@ function applyClaimBelief(witness, tellerId, claim, confidence, source, tick, ev
   } else if (claim.predicate === 'is_trustworthy') {
     const rel = relOf(witness, claim.subject);
     rel.trust = clamp(rel.trust + 0.2 * confidence, 0, 1);
+    rel.affection = clamp(rel.affection + 0.1 * confidence, -1, 1); // hearing someone vouched for warms you to them a little, not just trusts them
   } else if (claim.predicate === 'is_dangerous') {
     const rel = relOf(witness, claim.subject);
     rel.fear = clamp(rel.fear + 0.3 * confidence, 0, 1);
   }
+
+  reassessGoals(witness, claim.subject, tick);
 }
 
 function believesDead(agent, id) {
