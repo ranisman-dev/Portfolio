@@ -80,7 +80,7 @@ function renderMind() {
   const beliefs = m.beliefs.slice().reverse().slice(0, 10).map(b => `
     <li><span class="belief-conf">${Math.round(b.confidence * 100)}%</span>
       ${b.predicate.startsWith('did:') ? `believes ${b.subject} performed ${b.predicate.slice(4)} (#${b.eventId})` : Sim.PREDICATE_LABELS[b.predicate] ? Sim.PREDICATE_LABELS[b.predicate](b.data) : `${b.subject} ${b.predicate}`}
-      <span class="belief-source">via ${b.source}</span>
+      <span class="belief-source">via ${b.source}${b.contested ? ' — disputed by a competing account' : ''}</span>
     </li>`).join('') || '<li class="empty">No beliefs yet.</li>';
 
   const memories = m.memories.slice().reverse().slice(0, 8).map(mem => {
@@ -166,7 +166,7 @@ function buildDebugReport() {
       const label = b.predicate.startsWith('did:')
         ? `believes ${b.subject} performed ${b.predicate.slice(4)} (#${b.eventId})`
         : (Sim.PREDICATE_LABELS[b.predicate] ? Sim.PREDICATE_LABELS[b.predicate](b.data) : `${b.subject} ${b.predicate}`);
-      lines.push(`  - [${Math.round(b.confidence * 100)}%] ${label} — via ${b.source}, tick ${b.tick}`);
+      lines.push(`  - [${Math.round(b.confidence * 100)}%] ${label} — via ${b.source}, tick ${b.tick}${b.contested ? ' [disputed by a competing account]' : ''}`);
     });
 
     lines.push(`memories (${m.memories.length}):`);

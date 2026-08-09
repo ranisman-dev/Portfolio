@@ -484,13 +484,25 @@ function checkContradiction(world, witness, claim) {
 
   if (claim.predicate === 'stole_from' || claim.predicate === 'attacked') {
     const selfKnowledge = witness.id === claim.subject || witness.id === claim.victim;
-    if (!selfKnowledge) return false;
-    const actuallyHappened = world.events.some(ev =>
-      ev.actor === claim.subject && ev.data && ev.data.targetId === claim.victim &&
-      ((claim.predicate === 'stole_from' && ev.verb === 'Take' && ev.data.consented === false) ||
-       (claim.predicate === 'attacked' && ev.verb === 'Attack'))
+    if (selfKnowledge) {
+      const actuallyHappened = world.events.some(ev =>
+        ev.actor === claim.subject && ev.data && ev.data.targetId === claim.victim &&
+        ((claim.predicate === 'stole_from' && ev.verb === 'Take' && ev.data.consented === false) ||
+         (claim.predicate === 'attacked' && ev.verb === 'Attack'))
+      );
+      return !actuallyHappened;
+    }
+
+    // Bystander ground truth: not omniscience about the world, just not needing
+    // secondhand corroboration for something you personally watched happen.
+    // If I hold a witnessed (not hearsay) record of who really did this to this
+    // victim, a claim naming someone else is one I can refute myself.
+    const eventVerb = claim.predicate === 'stole_from' ? 'did:Take' : 'did:Attack';
+    const eyewitnessed = witness.mind.beliefs.find(b =>
+      b.predicate === eventVerb && b.source === 'witnessed' && b.data && b.data.targetId === claim.victim &&
+      (claim.predicate !== 'stole_from' || b.data.consented === false)
     );
-    return !actuallyHappened;
+    return !!eyewitnessed && eyewitnessed.subject !== claim.subject;
   }
 
   return false; // opinions (is_trustworthy/is_dangerous) aren't the kind of thing ground truth settles
@@ -512,9 +524,52 @@ function reactToBeingLiedTo(witness, tellerId, claim, tick) {
   reassessGoals(witness, tellerId, tick);
 }
 
+// Two accusations are competing explanations of the same incident either when
+// they name different culprits for the same victim ("who really robbed
+// Mara?") or when they accuse each other in the same pair ("who attacked
+// whom?"). Neither side has to be flatly false the way checkContradiction
+// catches — nobody here may have ground truth. What should happen instead is
+// weighing: corroboration (how many people are telling which story, and how
+// much you trust them) shifts belief toward one side and doubt onto the
+// other, rather than the two stories sitting side by side unresolved.
+function findConflictingBeliefs(witness, claim) {
+  if (claim.predicate !== 'stole_from' && claim.predicate !== 'attacked') return [];
+  return witness.mind.beliefs.filter(b => {
+    if (b.predicate !== claim.predicate || b.confidence <= 0.2) return false;
+    const mutualAccusation = b.data.subject === claim.victim && b.data.victim === claim.subject;
+    const rivalSuspect = b.data.victim === claim.victim && b.data.subject !== claim.subject;
+    return mutualAccusation || rivalSuspect;
+  });
+}
+
 function applyClaimBelief(world, witness, tellerId, claim, confidence, source, tick, eventId) {
   const contradicted = checkContradiction(world, witness, claim);
-  const effectiveConfidence = contradicted ? 0 : confidence;
+  let effectiveConfidence = contradicted ? 0 : confidence;
+  let contested = false;
+
+  if (!contradicted) {
+    const conflicts = findConflictingBeliefs(witness, claim);
+    if (conflicts.length) {
+      contested = true;
+      const existingSupport = Math.max(...conflicts.map(c => c.confidence));
+      // A true victim's first report of what happened to them isn't suspicious
+      // just because they're naming themselves as victim. What IS suspicious:
+      // someone already accused of X turning around and claiming the accuser
+      // actually did X to them — a denial that conveniently reverses an
+      // existing charge against the teller specifically.
+      const isDenialOfOwnAccusation = conflicts.some(c => c.data.subject === tellerId && c.data.victim === claim.subject);
+      const selfServing = isDenialOfOwnAccusation ? 0.6 : 1.0;
+      const newSupport = confidence * selfServing;
+
+      if (newSupport > existingSupport) {
+        conflicts.forEach(c => { c.confidence = clamp(c.confidence * 0.35, 0, 1); c.contested = true; });
+        effectiveConfidence = clamp(newSupport, 0, 0.85); // a contested claim never lands at full certainty
+      } else {
+        conflicts.forEach(c => { c.confidence = clamp(c.confidence * 0.9, 0, 1); c.contested = true; }); // a small doubt tax even for the side still ahead
+        effectiveConfidence = clamp(newSupport * 0.3, 0, 1);
+      }
+    }
+  }
 
   witness.mind.beliefs.push({
     id: `${witness.id}-claim${eventId}`,
@@ -525,6 +580,7 @@ function applyClaimBelief(world, witness, tellerId, claim, confidence, source, t
     source: contradicted ? `${source} (known false)` : source,
     tick,
     eventId,
+    contested,
   });
 
   if (contradicted) {
@@ -532,15 +588,15 @@ function applyClaimBelief(world, witness, tellerId, claim, confidence, source, t
     return;
   }
 
-  if (confidence < 0.35) return; // too little trust in the source to act on it
+  if (effectiveConfidence < 0.35) return; // too little support to act on it either way
   if (claim.subject === witness.id) return; // hearing unverifiable opinion about yourself doesn't need a relationship-with-self
 
   if (claim.predicate === 'stole_from' || claim.predicate === 'attacked') {
     const rel = relOf(witness, claim.subject);
-    rel.trust = clamp(rel.trust - 0.25 * confidence, 0, 1);
-    rel.affection = clamp(rel.affection - 0.2 * confidence, -1, 1);
+    rel.trust = clamp(rel.trust - 0.25 * effectiveConfidence, 0, 1);
+    rel.affection = clamp(rel.affection - 0.2 * effectiveConfidence, -1, 1);
     const caresAboutVictim = claim.victim === witness.id ? true : (claim.victim && relOf(witness, claim.victim).affection > 0);
-    rel.grievance = clamp(rel.grievance + (caresAboutVictim ? 0.5 : 0.15) * confidence, 0, 5);
+    rel.grievance = clamp(rel.grievance + (caresAboutVictim ? 0.5 : 0.15) * effectiveConfidence, 0, 5);
   } else if (claim.predicate === 'is_trustworthy') {
     const rel = relOf(witness, claim.subject);
     rel.trust = clamp(rel.trust + 0.2 * confidence, 0, 1);
@@ -593,7 +649,7 @@ function decideAndAct(world, witness, event, appraisal) {
   if (confidant && !believesDead(witness, confidant)) {
     const honestyWeight = getValueWeight(witness, 'Honesty');
     const truthful = Math.random() < clamp(0.5 + honestyWeight * 0.45, 0.05, 0.97);
-    const subject = truthful ? actorId : pickScapegoat(world, witness, actorId);
+    const subject = truthful ? actorId : pickScapegoat(world, witness, actorId, event.data.targetId);
     const predicate = event.verb === 'Attack' ? 'attacked' : 'stole_from';
     const claim = { predicate, subject, victim: event.data.targetId, item: event.data.item };
     const generalCare = clamp(0.15 + witness.mind.personality.agreeableness * 0.3 + getValueWeight(witness, 'Compassion') * 0.3, 0, 1);
@@ -634,8 +690,8 @@ function pickConfidant(world, witness, excludeId, excludeVictimId) {
   return others[0].id;
 }
 
-function pickScapegoat(world, witness, actualActorId) {
-  const others = Object.keys(world.agents).filter(id => id !== actualActorId && id !== witness.id);
+function pickScapegoat(world, witness, actualActorId, victimId) {
+  const others = Object.keys(world.agents).filter(id => id !== actualActorId && id !== witness.id && id !== victimId);
   return others[Math.floor(Math.random() * others.length)] || actualActorId;
 }
 
