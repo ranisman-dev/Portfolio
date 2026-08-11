@@ -24,6 +24,7 @@ const EXAMPLES = [
   'tell elena that ives stole bread from mara',
   'tell garrick that ives is dangerous',
   'tell elena that mara is dead',
+  'tell mara that garrick provoked player',
   'move to away',
   'return',
 ];
@@ -83,8 +84,13 @@ function parseCommand(world, actorId, raw) {
     if (rest.match(/^is dead$/)) return { verb: 'Tell', params: { targetId, claim: { predicate: 'is_dead', subject: subjectId } } };
     if (rest.match(/^is trustworthy$/)) return { verb: 'Tell', params: { targetId, claim: { predicate: 'is_trustworthy', subject: subjectId } } };
     if (rest.match(/^is dangerous$/)) return { verb: 'Tell', params: { targetId, claim: { predicate: 'is_dangerous', subject: subjectId } } };
+    if ((cm = rest.match(/^provoked\s+(\w+)$/))) {
+      const provokedId = findAgentId(world, actorId, cm[1]);
+      if (!provokedId) return { error: `who is "${cm[1]}"?` };
+      return { verb: 'Tell', params: { targetId, claim: { predicate: 'provoked', subject: subjectId, victim: provokedId } } };
+    }
 
-    return { error: `not sure what to tell ${targetTok} about ${subjectTok} — try "stole X from Y", "attacked Y", "is dead", "is trustworthy", or "is dangerous"` };
+    return { error: `not sure what to tell ${targetTok} about ${subjectTok} — try "stole X from Y", "attacked Y", "provoked Y", "is dead", "is trustworthy", or "is dangerous"` };
   }
 
   return { error: `didn't understand "${raw}" — try: ${EXAMPLES[Math.floor(Math.random() * EXAMPLES.length)]}` };

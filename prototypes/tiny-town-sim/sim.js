@@ -24,6 +24,7 @@ const PREDICATE_LABELS = {
   is_dead:    (c) => `${c.subject} is dead`,
   is_trustworthy: (c) => `${c.subject} is trustworthy`,
   is_dangerous:   (c) => `${c.subject} is dangerous`,
+  provoked:       (c) => `${c.subject} provoked ${c.victim}`,
 };
 
 const EMOTION_HALFLIFE_TICKS = 6;
@@ -388,6 +389,11 @@ function perceiveEvent(world, witnessId, event) {
     eventId: event.id,
   });
 
+  // Standing rapport as it was walking in, before this event's own fallout
+  // colors it — deciding whether to hear someone out should draw on who they
+  // already were to you, not damage from the very incident you're reacting to.
+  const priorRelationship = { ...relOf(witness, event.actor) };
+
   applyAppraisal(world, witness, event, appraisal);
 
   if (event.verb === 'Tell' && event.data.targetId === witnessId) {
@@ -403,7 +409,7 @@ function perceiveEvent(world, witnessId, event) {
     witness.mind.reactedEventIds.add(event.id);
     reactionDepth++;
     try {
-      decideAndAct(world, witness, event, appraisal);
+      decideAndAct(world, witness, event, appraisal, priorRelationship);
     } finally {
       reactionDepth--;
     }
@@ -604,6 +610,23 @@ function applyClaimBelief(world, witness, tellerId, claim, confidence, source, t
   } else if (claim.predicate === 'is_dangerous') {
     const rel = relOf(witness, claim.subject);
     rel.fear = clamp(rel.fear + 0.3 * confidence, 0, 1);
+  } else if (claim.predicate === 'provoked') {
+    // Unlike stole_from/attacked, "why" isn't a fact the event ledger can
+    // confirm or deny — there's no ground truth to check this against, only
+    // how much the witness trusts whoever's making the case. Believing it
+    // doesn't just smear the alleged provoker; it excuses some of what the
+    // witness already held the other party responsible for.
+    const provokerRel = relOf(witness, claim.subject);
+    provokerRel.trust = clamp(provokerRel.trust - 0.15 * confidence, 0, 1);
+    provokerRel.affection = clamp(provokerRel.affection - 0.15 * confidence, -1, 1);
+    provokerRel.grievance = clamp(provokerRel.grievance + 0.3 * confidence, 0, 5);
+
+    if (claim.victim && claim.victim !== witness.id) {
+      const excusedRel = relOf(witness, claim.victim);
+      excusedRel.grievance = clamp(excusedRel.grievance - 0.4 * confidence, 0, 5);
+      excusedRel.affection = clamp(excusedRel.affection + 0.15 * confidence, -1, 1);
+      reassessGoals(witness, claim.victim, tick);
+    }
   }
 
   reassessGoals(witness, claim.subject, tick);
@@ -615,7 +638,7 @@ function believesDead(agent, id) {
 
 // ── Decide + Act: a small generic utility AI over the same 5 verbs ──
 
-function decideAndAct(world, witness, event, appraisal) {
+function decideAndAct(world, witness, event, appraisal, priorRelationship) {
   if (appraisal.impact >= -0.05) {
     if (appraisal.impact < 0) {
       witness.mind.log.push({
@@ -636,13 +659,34 @@ function decideAndAct(world, witness, event, appraisal) {
 
   candidates.push({ action: null, label: 'do nothing', score: 0.15 });
 
+  // Use standing rapport (as it was before this event) for the social
+  // judgment calls — whether to hear someone out or go gossip about them —
+  // but the live, freshly-elevated fear/anger for how scared or provoked the
+  // witness is right now. Different questions, different timescales.
+  const priorTrust = clamp((priorRelationship || rel).trust, 0, 1);
+  const priorAffection = clamp((priorRelationship || rel).affection, 0, 1); // only the positive side counts toward wanting to hear someone out
+
   if (coLocated(world, witness.id, actorId)) {
     const confrontScore = (-appraisal.impact) * 0.5 * boldness - rel.fear * (1 - boldness) + anger * 0.15;
     candidates.push({
       action: () => performAction(world, witness.id, 'Attack', { targetId: actorId }, { causedBy: event.id }),
-      label: `confront ${actorId}`,
+      label: `attack ${actorId}`,
       score: confrontScore,
     });
+
+    // Someone I actually like and trust, I'd rather ask what happened than
+    // escalate to violence or go tell someone else behind their back. This is
+    // always the truth as the witness saw it — there's no reason to lie to
+    // the person you're asking directly.
+    if (priorAffection > 0.2) {
+      const predicate = event.verb === 'Attack' ? 'attacked' : 'stole_from';
+      const claim = { predicate, subject: actorId, victim: event.data.targetId, item: event.data.item };
+      candidates.push({
+        action: () => performAction(world, witness.id, 'Tell', { targetId: actorId, claim }, { causedBy: event.id }),
+        label: `press ${actorId} for an explanation`,
+        score: (-appraisal.impact) * 0.4 * priorAffection + priorTrust * 0.2,
+      });
+    }
   }
 
   const confidant = pickConfidant(world, witness, actorId, event.data.targetId);
@@ -656,7 +700,8 @@ function decideAndAct(world, witness, event, appraisal) {
     candidates.push({
       action: () => performAction(world, witness.id, 'Tell', { targetId: confidant, claim }, { causedBy: event.id }),
       label: `tell ${confidant} about ${actorId}${truthful ? '' : ' (misattributed)'}`,
-      score: (-appraisal.impact) * 0.5 + generalCare * 0.2,
+      // Liking the actor makes you less eager to go gossip about them behind their back.
+      score: (-appraisal.impact) * 0.5 + generalCare * 0.2 - priorAffection * 0.3,
     });
   }
 
@@ -692,7 +737,22 @@ function pickConfidant(world, witness, excludeId, excludeVictimId) {
 
 function pickScapegoat(world, witness, actualActorId, victimId) {
   const others = Object.keys(world.agents).filter(id => id !== actualActorId && id !== witness.id && id !== victimId);
-  return others[Math.floor(Math.random() * others.length)] || actualActorId;
+  if (others.length === 0) return actualActorId;
+
+  // A convenient lie names someone you don't much care for, not someone you
+  // like — weighted-random, not uniform, so a disliked or distrusted bystander
+  // is a more likely target than someone the witness is fond of.
+  const weights = others.map(id => {
+    const rel = relOf(witness, id);
+    return clamp(1.2 - rel.affection - rel.trust * 0.5, 0.1, 3);
+  });
+  const total = weights.reduce((a, b) => a + b, 0);
+  let roll = Math.random() * total;
+  for (let i = 0; i < others.length; i++) {
+    roll -= weights[i];
+    if (roll <= 0) return others[i];
+  }
+  return others[others.length - 1];
 }
 
 function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
