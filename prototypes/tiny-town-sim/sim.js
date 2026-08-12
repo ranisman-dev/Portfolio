@@ -18,6 +18,18 @@ const VALUES = [
   'Tradition', 'Autonomy', 'Status', 'Community', 'Pleasure', 'Curiosity', 'Honor',
 ];
 
+// Durable convictions about how the world works, distinct from Values (what
+// an agent cares about) and from mind.beliefs (situational stances tied to a
+// specific event). Same shape as Values — weight in [-1, 1], absence means no
+// strong opinion, not the opposite. Grounded in named psychology constructs
+// rather than invented: GeneralizedTrust (World Values Survey trust item),
+// JustWorld (Lerner's Just-World Hypothesis), CompetitiveJungle (Duckitt's
+// Competitive Jungle Belief — "a ruthless, amoral struggle for resources and
+// power in which might is right"), DangerousWorld (Duckitt & Altemeyer's
+// Dangerous World Belief). Superstition/spirituality/religion deliberately
+// deferred — a separate axis to design later, not squeezed in here.
+const WORLDVIEW_BELIEFS = ['GeneralizedTrust', 'JustWorld', 'CompetitiveJungle', 'DangerousWorld'];
+
 const PREDICATE_LABELS = {
   stole_from: (c) => `${c.subject} stole ${c.item || 'something'} from ${c.victim}`,
   attacked:   (c) => `${c.subject} attacked ${c.victim}`,
@@ -48,6 +60,7 @@ function makeAgent(id, name, opts = {}) {
         ...(opts.personality || {}),
       },
       values: opts.values || [], // [{ value: 'Justice', weight: 0.7 }, ...] — weight in [-1, 1]
+      worldview: opts.worldview || [], // [{ belief: 'JustWorld', weight: 0.6 }, ...] — durable, not situational
       beliefs: [],                // propositional: {id, subject, predicate, data, confidence, source, tick, eventId}
       needs: { safety: 1, sustenance: 1, belonging: 0.6, ...(opts.needs || {}) },
       emotions: [],                // transient: {emotion, target, intensity, tick} — decays, doesn't persist like relationships
@@ -62,7 +75,15 @@ function makeAgent(id, name, opts = {}) {
 
 function relOf(agent, otherId) {
   if (!agent.mind.relationships[otherId]) {
-    agent.mind.relationships[otherId] = { trust: 0.5, affection: 0.3, fear: 0, grievance: 0 };
+    // First impression of someone with no history yet — DangerousWorld shifts
+    // where that starts. Weight 0 (absent) reproduces the old flat default exactly.
+    const dangerWeight = getWorldviewWeight(agent, 'DangerousWorld');
+    agent.mind.relationships[otherId] = {
+      trust: clamp(0.5 - dangerWeight * 0.2, 0, 1),
+      affection: clamp(0.3 - dangerWeight * 0.15, -1, 1),
+      fear: clamp(dangerWeight * 0.1, 0, 1),
+      grievance: 0,
+    };
   }
   return agent.mind.relationships[otherId];
 }
@@ -70,6 +91,25 @@ function relOf(agent, otherId) {
 function getValueWeight(agent, valueName) {
   const v = agent.mind.values.find(v => v.value === valueName);
   return v ? v.weight : 0; // absent = indifferent, not opposed
+}
+
+function getWorldviewWeight(agent, beliefName) {
+  const w = agent.mind.worldview.find(w => w.belief === beliefName);
+  return w ? w.weight : 0; // absent = no strong opinion, not the opposite
+}
+
+// General willingness to care about a wrong done to someone else — temperament
+// (Agreeableness) and an explicit Compassion value push it up; seeing the
+// world as a ruthless competition (CompetitiveJungle) pulls it back down,
+// since a wrong to a stranger reads less like something worth caring about.
+function generalCareOf(witness) {
+  return clamp(
+    0.15
+    + witness.mind.personality.agreeableness * 0.3
+    + getValueWeight(witness, 'Compassion') * 0.3
+    - getWorldviewWeight(witness, 'CompetitiveJungle') * 0.25,
+    0, 1
+  );
 }
 
 function createWorld() {
@@ -80,26 +120,31 @@ function createWorld() {
       inventory: { bread: 6, gold: 3 },
       personality: { conscientiousness: 0.8, agreeableness: 0.55, neuroticism: 0.4, boldness: 0.35 },
       values: [{ value: 'Justice', weight: 0.7 }, { value: 'Honesty', weight: 0.6 }, { value: 'Community', weight: 0.4 }],
+      worldview: [{ belief: 'JustWorld', weight: 0.6 }, { belief: 'GeneralizedTrust', weight: 0.3 }],
     }),
     ives: makeAgent('ives', 'Ives', {
       inventory: { bread: 0, gold: 1 },
       personality: { conscientiousness: 0.3, agreeableness: 0.35, extraversion: 0.7, boldness: 0.7 },
       values: [{ value: 'Pleasure', weight: 0.6 }, { value: 'Autonomy', weight: 0.5 }, { value: 'Honesty', weight: -0.3 }],
+      worldview: [{ belief: 'CompetitiveJungle', weight: 0.5 }, { belief: 'GeneralizedTrust', weight: -0.2 }],
     }),
     tomas: makeAgent('tomas', 'Tomas', {
       inventory: { bread: 1, gold: 2 },
       personality: { agreeableness: 0.4, neuroticism: 0.45, boldness: 0.5 },
       values: [{ value: 'Status', weight: 0.5 }, { value: 'Wealth', weight: 0.5 }, { value: 'Tradition', weight: 0.3 }],
+      worldview: [{ belief: 'CompetitiveJungle', weight: 0.4 }, { belief: 'JustWorld', weight: -0.3 }],
     }),
     elena: makeAgent('elena', 'Elena', {
       inventory: { bread: 1, gold: 4 },
       personality: { openness: 0.6, conscientiousness: 0.6, agreeableness: 0.75, neuroticism: 0.3, boldness: 0.75 },
       values: [{ value: 'Compassion', weight: 0.8 }, { value: 'Justice', weight: 0.6 }, { value: 'Community', weight: 0.5 }],
+      worldview: [{ belief: 'GeneralizedTrust', weight: 0.7 }, { belief: 'JustWorld', weight: 0.5 }, { belief: 'DangerousWorld', weight: -0.3 }],
     }),
     garrick: makeAgent('garrick', 'Garrick', {
       inventory: { bread: 0, gold: 6 },
       personality: { conscientiousness: 0.8, neuroticism: 0.25, boldness: 0.85 },
       values: [{ value: 'Justice', weight: 0.7 }, { value: 'Honesty', weight: 0.7 }, { value: 'Loyalty', weight: 0.5 }],
+      worldview: [{ belief: 'JustWorld', weight: 0.6 }, { belief: 'DangerousWorld', weight: 0.3 }],
     }),
   };
 
@@ -398,11 +443,16 @@ function perceiveEvent(world, witnessId, event) {
 
   if (event.verb === 'Tell' && event.data.targetId === witnessId) {
     const trust = relOf(witness, event.actor).trust;
-    applyClaimBelief(world, witness, event.actor, event.data.claim, 0.4 + trust * 0.5, `told:${event.actor}`, event.tick, event.id);
+    // GeneralizedTrust is deliberately a different lever than relationship trust
+    // above — general credulity toward testimony, not standing toward this
+    // specific person.
+    const credulity = getWorldviewWeight(witness, 'GeneralizedTrust');
+    applyClaimBelief(world, witness, event.actor, event.data.claim, clamp(0.4 + trust * 0.5 + credulity * 0.15, 0, 1), `told:${event.actor}`, event.tick, event.id);
   } else if (event.verb === 'Tell') {
     // overheard secondhand — weaker confidence than being told directly
     const trust = relOf(witness, event.actor).trust;
-    applyClaimBelief(world, witness, event.actor, event.data.claim, 0.2 + trust * 0.3, `overheard:${event.actor}`, event.tick, event.id);
+    const credulity = getWorldviewWeight(witness, 'GeneralizedTrust');
+    applyClaimBelief(world, witness, event.actor, event.data.claim, clamp(0.2 + trust * 0.3 + credulity * 0.1, 0, 1), `overheard:${event.actor}`, event.tick, event.id);
   }
 
   if (!witness.mind.reactedEventIds.has(event.id) && reactionDepth < MAX_REACTION_DEPTH) {
@@ -433,9 +483,7 @@ function appraiseEvent(world, witness, event) {
   }
 
   if (!isVictim) {
-    // General willingness to care about a wrong done to someone else — driven by
-    // temperament (Agreeableness) and, on top of that, an explicit Compassion value.
-    const generalCare = clamp(0.15 + witness.mind.personality.agreeableness * 0.3 + getValueWeight(witness, 'Compassion') * 0.3, 0, 1);
+    const generalCare = generalCareOf(witness);
     impact *= victimAffection > 0 ? victimAffection * generalCare * 1.5 : generalCare * 0.3;
   }
 
@@ -577,6 +625,15 @@ function applyClaimBelief(world, witness, tellerId, claim, confidence, source, t
     }
   }
 
+  if (!contradicted && claim.predicate === 'provoked') {
+    // A person who needs the world to be fair is more receptive to being
+    // handed a reason wrongdoing happened — it fits the belief better than an
+    // unprovoked, arbitrary act would. Someone who doesn't expect life to hand
+    // out clean explanations is correspondingly more skeptical of one.
+    const justWorldWeight = getWorldviewWeight(witness, 'JustWorld');
+    effectiveConfidence = clamp(effectiveConfidence + justWorldWeight * 0.15, 0, 1);
+  }
+
   witness.mind.beliefs.push({
     id: `${witness.id}-claim${eventId}`,
     subject: claim.subject,
@@ -667,7 +724,10 @@ function decideAndAct(world, witness, event, appraisal, priorRelationship) {
   const priorAffection = clamp((priorRelationship || rel).affection, 0, 1); // only the positive side counts toward wanting to hear someone out
 
   if (coLocated(world, witness.id, actorId)) {
-    const confrontScore = (-appraisal.impact) * 0.5 * boldness - rel.fear * (1 - boldness) + anger * 0.15;
+    // Seeing the world as a ruthless competition (CompetitiveJungle) makes
+    // resolving a dispute through dominance read as more natural, not a last resort.
+    const confrontScore = (-appraisal.impact) * 0.5 * boldness - rel.fear * (1 - boldness) + anger * 0.15
+      + getWorldviewWeight(witness, 'CompetitiveJungle') * 0.2;
     candidates.push({
       action: () => performAction(world, witness.id, 'Attack', { targetId: actorId }, { causedBy: event.id }),
       label: `attack ${actorId}`,
@@ -696,7 +756,7 @@ function decideAndAct(world, witness, event, appraisal, priorRelationship) {
     const subject = truthful ? actorId : pickScapegoat(world, witness, actorId, event.data.targetId);
     const predicate = event.verb === 'Attack' ? 'attacked' : 'stole_from';
     const claim = { predicate, subject, victim: event.data.targetId, item: event.data.item };
-    const generalCare = clamp(0.15 + witness.mind.personality.agreeableness * 0.3 + getValueWeight(witness, 'Compassion') * 0.3, 0, 1);
+    const generalCare = generalCareOf(witness);
     candidates.push({
       action: () => performAction(world, witness.id, 'Tell', { targetId: confidant, claim }, { causedBy: event.id }),
       label: `tell ${confidant} about ${actorId}${truthful ? '' : ' (misattributed)'}`,
@@ -763,6 +823,7 @@ const Sim = {
   LOCATIONS,
   VERBS,
   VALUES,
+  WORLDVIEW_BELIEFS,
   PREDICATE_LABELS,
   createWorld,
   performAction,

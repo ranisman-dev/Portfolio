@@ -37,18 +37,49 @@ Honesty gates lying/scapegoating, Justice scales offense at theft, Wealth
 gates whether restitution reads as "enough," Compassion adds to bystander
 care on top of Agreeableness.
 
-## Worldview — NOT YET BUILT (`mind.worldview`, proposed)
+## Worldview (`mind.worldview`)
 
 Durable convictions about how the world *works*, as distinct from stances
-about specific incidents: "strangers are dangerous," "everyone is out to
-get me," "a higher being created the universe," "survival of the fittest."
-These belong at the same sticky tier as Personality and Values — not below
-Beliefs, not a variant of them. Two NPCs with identical stats and an
-identical witnessed event should be able to react differently because they
-hold opposite convictions on the same axis. Nothing in the current model
-can produce that: `mind.beliefs` only holds situational propositions, and
-nothing plays the role of an interpretive lens sitting in front of
-appraisal. See "Gaps for the next phase" below for the concrete build.
+about specific incidents: "strangers are dangerous," "actions have
+consequences," "might is right." These sit at the same sticky tier as
+Personality and Values — not below Beliefs, not a variant of them. Same
+shape as Values: `[{ belief: 'JustWorld', weight: 0.6 }, ...]`, weight in
+`[-1, 1]`, absence means no strong opinion, not the opposite. Set once in
+`createWorld()`, never mutated — same static status as Personality/Values
+until Phase 2 (see "Gaps for the next phase").
+
+Four entries, each grounded in a named psychology construct rather than
+invented:
+
+- **`GeneralizedTrust`** — World Values Survey's trust item ("most people
+  can be trusted" vs. "you can't be too careful"). Hook: adds to the base
+  confidence formula in claim-belief formation (`0.4 + trust×0.5 +
+  credulity×0.15` told directly, smaller effect overheard) — general
+  credulity toward testimony, deliberately separate from relationship trust
+  in a specific person.
+- **`JustWorld`** — Lerner's Just-World Hypothesis (people get what they
+  deserve; the world isn't arbitrary). Hook: shifts confidence in a
+  `provoked` justification specifically (`applyClaimBelief`) — someone who
+  needs wrongdoing to have a reason is more receptive to being handed one.
+- **`CompetitiveJungle`** — Duckitt's Competitive Jungle Belief ("a
+  ruthless, amoral struggle for resources and power in which might is
+  right"). Hook: pulls down `generalCareOf()` (bystander compassion for
+  wrongs done to others) and adds a direct boost to the Attack score in
+  `decideAndAct` — colder toward others' suffering, quicker to reach for
+  dominance over talking.
+- **`DangerousWorld`** — Duckitt & Altemeyer's Dangerous World Belief.
+  Hook: shifts the *default* relationship values in `relOf()` for a
+  first-ever encounter with someone new — lower starting trust/affection,
+  higher starting fear, before any actual history exists.
+
+Superstition, spirituality, and religious conviction were deliberately left
+out of this bank — a separate axis to design once there's a concrete
+mechanic for it to plug into, not squeezed in without one.
+
+**Verified:** two clones of the same NPC, identical stats, opposite
+`CompetitiveJungle` weight, witnessing the identical event, choose different
+reactions (`do nothing` vs. `attack player`) — the core case this box exists
+to make possible.
 
 ## Beliefs (`mind.beliefs`) — situational, not worldview
 
@@ -169,60 +200,13 @@ types exist:
 
 ## Gaps for the next phase
 
-Ordered by what's actually buildable next, not by importance. Phase 1 is
-self-contained and testable on its own — it doesn't require Phase 2 to be
-designed first.
+### Phase 1 — Worldview, static — SHIPPED
 
-### Phase 1 — Worldview, static (buildable now)
-
-Add `mind.worldview` as a fourth sticky-tier box, structurally identical to
-Values (`[{ belief: 'StrangersAreDangerous', weight: 0.8 }, ...]`, weight
-`[-1, 1]`, absence = no strong opinion, negative weight = leans toward the
-opposite pole) but seeded and read the same static way Personality/Values
-currently are — no drift yet, just present and mechanically influential.
-This alone produces the divergent-behavior test case (same stats, opposite
-convictions, different outcomes) without needing the drift mechanism at
-all.
-
-Three things need deciding before this is code:
-
-1. **Naming.** Add `mind.worldview` alongside the existing `mind.beliefs`
-   (recommended — least disruptive, keeps the situational/durable
-   distinction visible in the code, not just in docs), or rename the
-   existing box to something like `mind.impressions` and reclaim `beliefs`
-   for the durable layer. Existing code, this doc, and prior conversation
-   all currently say "beliefs" for the situational box — a rename touches
-   more surface area for a naming preference with no behavior change.
-
-2. **The initial bank.** Draft, not final — trim, replace, or expand:
-   - Social: `StrangersAreDangerous`, `PeopleAreGenerallyGood`,
-     `EveryoneIsOutToGetMe`, `LoyaltyMustBeEarned`
-   - Philosophical: `SurvivalOfTheFittest`, `MightMakesRight`,
-     `ActionsHaveConsequences`
-   - Metaphysical: `HigherPowerWatchesOverUs`, `WorldIsRandomAndMeaningless`,
-     `MagicIsCorrupting`
-   
-   Not all of these have an obvious hook into current mechanics yet (the
-   metaphysical ones especially are closer to flavor/character-color right
-   now than to anything the sim can act on) — same situation Values were in
-   before Honesty/Justice/Wealth got wired to real formulas. That's fine as
-   a starting bank; mechanical hooks can attach incrementally.
-
-3. **Where it plugs into existing formulas.** Concrete, minimal wiring for
-   the entries that clearly have one:
-   - `StrangersAreDangerous` → shifts the *default* relationship values
-     (`relOf`'s `{trust: 0.5, affection: 0.3, ...}`) for agents with no
-     prior history, not just reactions to specific events
-   - `EveryoneIsOutToGetMe` → biases `appraiseEvent`'s impact more negative
-     across the board, and/or lowers the bar for believing accusatory
-     claims about others
-   - `PeopleAreGenerallyGood` → raises the threshold for `checkContradiction`
-     — style suspicion, or increases baseline willingness to accept a
-     `provoked` justification
-   
-   This is the part worth testing hardest once built: does "same stats,
-   opposite worldview" actually produce visibly different play, or does it
-   need stronger hooks than these three to read as real in practice?
+`mind.worldview` exists, is seeded per-NPC to match established character,
+and all four entries are mechanically wired (see the Worldview section
+above for exact hooks). Verified against the divergent-behavior test case
+this box was built to make possible. Superstition/spirituality/religion
+intentionally deferred, not part of this bank.
 
 ### Phase 2 — slow drift for Personality/Values/Worldview (needs design first)
 
@@ -242,7 +226,7 @@ answers before it's buildable, not during:
   rumination?
 - Per-value/per-belief drift, or does one large event nudge several at
   once (a single betrayal denting both a Loyalty value and a
-  PeopleAreGenerallyGood worldview)?
+  GeneralizedTrust worldview)?
 
 ### Pre-existing stubs, unrelated to Worldview
 

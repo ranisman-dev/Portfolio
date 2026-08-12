@@ -67,6 +67,10 @@ function renderMind() {
     ? m.values.map(v => `<li><strong>${v.value}</strong> ${v.weight >= 0 ? '+' : ''}${v.weight.toFixed(2)}</li>`).join('')
     : '<li class="empty">Holds none of the named values strongly — indifferent by default, not opposed.</li>';
 
+  const worldview = m.worldview.length
+    ? m.worldview.map(w => `<li><strong>${w.belief}</strong> ${w.weight >= 0 ? '+' : ''}${w.weight.toFixed(2)}</li>`).join('')
+    : '<li class="empty">No strong convictions either way — not the same as holding the opposite view.</li>';
+
   const needs = Object.entries(m.needs).map(([need, v]) =>
     `<li><strong>${need}</strong> <span class="bar"><span class="bar-fill" style="width:${Math.round(v * 100)}%"></span></span> ${v.toFixed(2)}</li>`
   ).join('');
@@ -106,6 +110,7 @@ function renderMind() {
     <h3>${agent.name}'s mind</h3>
     <div class="mind-section"><h4>Personality (OCEAN + boldness)</h4><ul class="bar-list">${personality}</ul></div>
     <div class="mind-section"><h4>Values</h4><ul>${values}</ul></div>
+    <div class="mind-section"><h4>Worldview</h4><ul>${worldview}</ul></div>
     <div class="mind-section"><h4>Needs</h4><ul class="bar-list">${needs}</ul></div>
     <div class="mind-section"><h4>Emotions</h4><ul>${emotions}</ul></div>
     <div class="mind-section"><h4>Beliefs</h4><ul>${beliefs}</ul></div>
@@ -152,6 +157,7 @@ function buildDebugReport() {
     lines.push(`location: ${a.location} | hp: ${a.health} (${a.alive ? 'alive' : 'down'}) | bread ${a.inventory.bread}, gold ${a.inventory.gold}`);
     lines.push(`personality: ${Object.entries(m.personality).map(([k, v]) => `${k}=${v.toFixed(2)}`).join(', ')}`);
     lines.push(`values: ${m.values.length ? m.values.map(v => `${v.value}=${v.weight >= 0 ? '+' : ''}${v.weight.toFixed(2)}`).join(', ') : '(none)'}`);
+    lines.push(`worldview: ${m.worldview.length ? m.worldview.map(w => `${w.belief}=${w.weight >= 0 ? '+' : ''}${w.weight.toFixed(2)}`).join(', ') : '(none)'}`);
     lines.push(`needs: ${Object.entries(m.needs).map(([k, v]) => `${k}=${v.toFixed(2)}`).join(', ')}`);
 
     const liveEmotions = m.emotions.map(e => {
