@@ -22,7 +22,7 @@ demonstrates a need."
 
 **Known gap:** this is meant to be the "sticky, not static" layer — slow to
 shift, capable of snapping from one intense event. Right now it's just
-static. See "Not yet built" below.
+static. See "Gaps for the next phase" below.
 
 ## Values (`mind.values`)
 
@@ -37,10 +37,26 @@ Honesty gates lying/scapegoating, Justice scales offense at theft, Wealth
 gates whether restitution reads as "enough," Compassion adds to bystander
 care on top of Agreeableness.
 
-## Beliefs (`mind.beliefs`)
+## Worldview — NOT YET BUILT (`mind.worldview`, proposed)
+
+Durable convictions about how the world *works*, as distinct from stances
+about specific incidents: "strangers are dangerous," "everyone is out to
+get me," "a higher being created the universe," "survival of the fittest."
+These belong at the same sticky tier as Personality and Values — not below
+Beliefs, not a variant of them. Two NPCs with identical stats and an
+identical witnessed event should be able to react differently because they
+hold opposite convictions on the same axis. Nothing in the current model
+can produce that: `mind.beliefs` only holds situational propositions, and
+nothing plays the role of an interpretive lens sitting in front of
+appraisal. See "Gaps for the next phase" below for the concrete build.
+
+## Beliefs (`mind.beliefs`) — situational, not worldview
 
 Propositional, not episodic — a belief is a *stance*, not a memory of
-experiencing something. Shape:
+experiencing something. Tied to a specific incident (an eventId), formed
+fast, evaluated for confidence. Not to be confused with Worldview above —
+"Mara stole bread" is a belief; "people are fundamentally selfish" is a
+worldview. Shape:
 
 ```
 { id, subject, predicate, data, confidence, source, tick, eventId, contested? }
@@ -151,21 +167,95 @@ types exist:
   anywhere in the codebase.** Same shape as a real goal, no behavior behind
   it — a stub that shows up in the mind inspector and nothing else.
 
-## Not yet built
+## Gaps for the next phase
 
-Logged, not implemented, so it doesn't get lost between sessions:
+Ordered by what's actually buildable next, not by importance. Phase 1 is
+self-contained and testable on its own — it doesn't require Phase 2 to be
+designed first.
 
-- **Personality/value drift.** The Phelps-Roper framework (intentional vs.
-  unintentional change, sustained pressure vs. one intense event, the
-  regression trap for unintentional shifts) — a separate design pass, not
-  a bolt-on. Needs concrete trigger conditions before it's buildable:
-  what counts as "intense enough," what a slow-accumulation path even
-  measures against, per-value vs. whole-person shifts.
-- **Belief decay/pruning.** Beliefs currently never fade or get forgotten
-  the way memories do, which is an odd asymmetry given a belief is
-  downstream of a memory in the witnessed case.
+### Phase 1 — Worldview, static (buildable now)
+
+Add `mind.worldview` as a fourth sticky-tier box, structurally identical to
+Values (`[{ belief: 'StrangersAreDangerous', weight: 0.8 }, ...]`, weight
+`[-1, 1]`, absence = no strong opinion, negative weight = leans toward the
+opposite pole) but seeded and read the same static way Personality/Values
+currently are — no drift yet, just present and mechanically influential.
+This alone produces the divergent-behavior test case (same stats, opposite
+convictions, different outcomes) without needing the drift mechanism at
+all.
+
+Three things need deciding before this is code:
+
+1. **Naming.** Add `mind.worldview` alongside the existing `mind.beliefs`
+   (recommended — least disruptive, keeps the situational/durable
+   distinction visible in the code, not just in docs), or rename the
+   existing box to something like `mind.impressions` and reclaim `beliefs`
+   for the durable layer. Existing code, this doc, and prior conversation
+   all currently say "beliefs" for the situational box — a rename touches
+   more surface area for a naming preference with no behavior change.
+
+2. **The initial bank.** Draft, not final — trim, replace, or expand:
+   - Social: `StrangersAreDangerous`, `PeopleAreGenerallyGood`,
+     `EveryoneIsOutToGetMe`, `LoyaltyMustBeEarned`
+   - Philosophical: `SurvivalOfTheFittest`, `MightMakesRight`,
+     `ActionsHaveConsequences`
+   - Metaphysical: `HigherPowerWatchesOverUs`, `WorldIsRandomAndMeaningless`,
+     `MagicIsCorrupting`
+   
+   Not all of these have an obvious hook into current mechanics yet (the
+   metaphysical ones especially are closer to flavor/character-color right
+   now than to anything the sim can act on) — same situation Values were in
+   before Honesty/Justice/Wealth got wired to real formulas. That's fine as
+   a starting bank; mechanical hooks can attach incrementally.
+
+3. **Where it plugs into existing formulas.** Concrete, minimal wiring for
+   the entries that clearly have one:
+   - `StrangersAreDangerous` → shifts the *default* relationship values
+     (`relOf`'s `{trust: 0.5, affection: 0.3, ...}`) for agents with no
+     prior history, not just reactions to specific events
+   - `EveryoneIsOutToGetMe` → biases `appraiseEvent`'s impact more negative
+     across the board, and/or lowers the bar for believing accusatory
+     claims about others
+   - `PeopleAreGenerallyGood` → raises the threshold for `checkContradiction`
+     — style suspicion, or increases baseline willingness to accept a
+     `provoked` justification
+   
+   This is the part worth testing hardest once built: does "same stats,
+   opposite worldview" actually produce visibly different play, or does it
+   need stronger hooks than these three to read as real in practice?
+
+### Phase 2 — slow drift for Personality/Values/Worldview (needs design first)
+
+The Phelps-Roper framework (intentional vs. unintentional change, sustained
+pressure vs. one intense event, the regression trap for unintentional
+shifts reverting once the pressure lifts, neuroticism modulating how long
+a shift takes to settle). Deliberately not scoped yet — needs concrete
+answers before it's buildable, not during:
+
+- What counts as "sustained pressure"? A running counter per trait/value/
+  belief that increments on contradicting events and decays when
+  unreinforced, checked against a threshold?
+- What counts as "intense enough to snap on its own," bypassing the slow
+  path entirely?
+- Does personality modulate its own drift rate (a neurotic person takes
+  longer to settle) as well as everyone else's, per the note about
+  rumination?
+- Per-value/per-belief drift, or does one large event nudge several at
+  once (a single betrayal denting both a Loyalty value and a
+  PeopleAreGenerallyGood worldview)?
+
+### Pre-existing stubs, unrelated to Worldview
+
+Still open from the last pass, unchanged priority:
+
+- **Belief decay/pruning.** Beliefs never fade or get forgotten the way
+  memories do — an odd asymmetry given a belief is downstream of a memory
+  in the witnessed case.
 - **Needs regeneration and `belonging`.** No need currently recovers on its
   own, and `belonging` has no triggers at all.
 - **Tell/Move-aware memory importance.** Conversation memories should
   presumably inherit some signal from the claim's content, not always form
   at the floor.
+- **`ReplenishFood` goal.** Created, never read again anywhere — either
+  wire it to something (an agent low on food actually seeking more) or cut
+  it until it does something.
